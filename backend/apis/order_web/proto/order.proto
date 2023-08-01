@@ -1,0 +1,95 @@
+syntax = "proto3";
+import "google/protobuf/empty.proto";
+package proto;
+option go_package = ".;proto";
+
+
+service Order {
+    rpc CartItemList (UserInfoRequest) returns (CartItemListResponse);
+    rpc CreateCartItem (CartItemRequest) returns (ShopCartInfoResponse);
+    rpc UpdateCartItem (CartItemRequest) returns (google.protobuf.Empty);
+    rpc DeleteCartItem (CartItemRequest) returns (google.protobuf.Empty);
+
+    rpc CreateOrder (OrderRequest) returns (OrderInfoResponse);
+    rpc OrderList (OrderFilterRequest) returns (OrderListResponse);
+    rpc OrderDetail (OrderRequest) returns (OrderInfoDetailResponse);
+    rpc UpdateOrderStatus (OrderStatusRequest) returns (google.protobuf.Empty);
+}
+
+message UserInfoRequest {
+    int32 id = 1;
+}
+
+message ShopCartInfoResponse {
+    int32 id = 1;
+    int32 userId = 2;
+    int32 goodsId = 3;
+    int32 nums = 4;
+    bool checked = 5;
+}
+
+message CartItemListResponse {
+    int32 total = 1;
+    repeated ShopCartInfoResponse data = 2;
+}
+
+message CartItemRequest {
+    int32 userId = 1;
+    int32 goodsId = 2;
+    int32 nums = 3;
+    bool checked = 4;
+}
+
+message OrderRequest {
+    int32 id = 1;
+    int32 userId = 2;
+    string address = 3;
+    string mobile = 4;
+    string name = 5;
+    string message = 6;
+}
+
+message OrderInfoResponse {
+    int32 id = 1;
+    int32 userId = 2;
+    string orderSn = 3;
+    string payType = 4;
+    string status = 5;
+    string message = 6;
+    float total = 7;
+    string address = 8;
+    string name = 9;
+    string mobile = 10;
+    string addTime = 11;
+}
+
+message OrderListResponse {
+    int32 total = 1;
+    repeated OrderInfoResponse data = 2;
+}
+
+message OrderFilterRequest {
+    int32 userId = 1;
+    int32 pages = 2;
+    int32 pagePerNums = 3;
+}
+
+message OrderItemResponse {
+    int32 id = 1;
+    int32 orderId = 2;
+    int32 goodsId = 3;
+    string goodsName = 4;
+    string goodsImage = 5;
+    float goodsPrice = 6;
+    int32 goodsNums = 7;
+}
+
+message OrderInfoDetailResponse {
+    OrderInfoResponse orderInfo = 1;
+    repeated OrderItemResponse data = 2;
+}
+
+message OrderStatusRequest {
+    string orderSn = 1;
+    string status = 2;
+}

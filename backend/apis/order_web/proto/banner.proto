@@ -1,0 +1,30 @@
+
+syntax = "proto3";
+import "google/protobuf/empty.proto";
+option go_package = ".;proto";
+
+service Banner{
+    // 轮播图接口
+    rpc BannerList(google.protobuf.Empty) returns (BannerListResponse);
+    rpc CreateBanner(BannerRequest) returns (BannerResponse);
+    rpc DeleteBanner(BannerRequest) returns (google.protobuf.Empty);
+    rpc UpdateBanner(BannerRequest) returns (google.protobuf.Empty);
+}
+
+message BannerRequest {
+    int32 id = 1;
+    int32 index = 2;
+    string image = 3;
+    string url = 4;
+}
+
+message BannerResponse {
+    int32 id = 1;
+    int32 index = 2;
+    string image = 3;
+    string url = 4;
+}
+message BannerListResponse {
+    int32 total = 1;
+    repeated BannerResponse data = 2;
+}

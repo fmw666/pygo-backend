@@ -1,0 +1,99 @@
+
+syntax = "proto3";
+import "google/protobuf/empty.proto";
+import "brand.proto";
+option go_package = ".;proto";
+
+service Goods{
+    // 商品接口
+    rpc GoodsList(GoodsFilterRequest) returns (GoodsListResponse);
+    rpc BatchGetGoods(BatchGoodsIdInfo) returns (GoodsListResponse);
+    rpc CreateGoods(CreateGoodsInfo) returns (GoodsInfoResponse);
+    rpc DeleteGoods(DeleteGoodsInfo) returns (google.protobuf.Empty);
+    rpc UpdateGoods(CreateGoodsInfo) returns (google.protobuf.Empty);
+    rpc GetGoodsDetail(GoodInfoRequest) returns(GoodsInfoResponse);
+}
+
+message BatchGoodsIdInfo {
+    repeated int32 id = 1;
+}
+
+message DeleteGoodsInfo {
+    int32 id = 1;
+}
+
+message GoodInfoRequest {
+    int32 id = 1;
+}
+
+message CreateGoodsInfo {
+    int32 id = 1;
+    string name = 2;
+    string goodsSn = 3;
+    int32 stocks = 4;
+    float marketPrice = 5;
+    float shopPrice = 6;
+    string goodsBrief = 7;
+    string goodsDesc = 8;
+    bool shipFree = 9;
+    repeated string images = 10;
+    repeated string descImages = 11;
+    string goodsFrontImage = 12;
+    bool isNew = 13;
+    bool isHot = 14;
+    bool onSale = 15;
+    int32 categoryId = 16;
+    int32 brandId = 17;
+}
+
+message GoodsReduceRequest {
+    int32 goodsId = 1;
+    int32 nums = 2;
+}
+
+message GoodsFilterRequest {
+    int32 priceMin = 1;
+    int32 priceMax = 2;
+    bool isHot = 3;
+    bool isNew = 4;
+    bool isTab = 5;
+    int32 topCategory = 6;
+    int32 pages = 7;
+    int32 pagePerNums = 8;
+    string keyWords = 9;
+    int32 brand = 10;
+}
+
+message CategoryBriefInfoResponse {
+    int32 id = 1;
+    string name = 2;
+}
+
+message GoodsInfoResponse {
+    int32 id = 1;
+    int32 categoryId = 2;
+    string name = 3;
+    string goodsSn = 4;
+    int32 clickNum = 5;
+    int32 soldNum = 6;
+    int32 favNum = 7;
+    float marketPrice = 8;
+    float shopPrice = 9;
+    string goodsBrief = 10;
+    string goodsDesc = 11;
+    bool shipFree = 12;
+    repeated string images = 13;
+    repeated string descImages = 14;
+    string goodsFrontImage = 15;
+    bool isNew = 16;
+    bool isHot = 17;
+    bool onSale = 18;
+    int64 addTime = 19;
+    CategoryBriefInfoResponse category = 20;
+    BrandInfoResponse brand = 21;
+}
+
+message GoodsListResponse {
+    int32 total = 1;
+    repeated GoodsInfoResponse data = 2;
+}

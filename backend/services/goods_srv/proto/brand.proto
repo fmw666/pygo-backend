@@ -1,0 +1,63 @@
+
+syntax = "proto3";
+import "google/protobuf/empty.proto";
+import "category.proto";
+option go_package = ".;proto";
+
+service Brand{
+    // 品牌接口
+    rpc BrandList(BrandFilterRequest) returns (BrandListResponse);
+    rpc CreateBrand(BrandRequest) returns (BrandInfoResponse);
+    rpc DeleteBrand(BrandRequest) returns (google.protobuf.Empty);
+    rpc UpdateBrand(BrandRequest) returns (google.protobuf.Empty);
+
+    rpc CategoryBrandList(CategoryBrandFilterRequest) returns (CategoryBrandListResponse);
+    rpc GetCategoryBrandList(CategoryInfoRequest) returns (BrandListResponse);
+    rpc CreateCategoryBrand(CategoryBrandRequest) returns (CategoryBrandResponse);
+    rpc DeleteCategoryBrand(CategoryBrandRequest) returns (google.protobuf.Empty);
+    rpc UpdateCategoryBrand(CategoryBrandRequest) returns (google.protobuf.Empty);
+}
+
+message CategoryBrandFilterRequest {
+    int32 pages = 1;
+    int32 pagePerNums = 2;
+}
+
+message CategoryBrandRequest {
+    int32 id = 1;
+    int32 categoryId = 2;
+    int32 brandId = 3;
+}
+
+message CategoryBrandResponse {
+    int32 id = 1;
+    BrandInfoResponse brand = 2;
+    CategoryInfoResponse category = 3;
+}
+
+message BrandFilterRequest {
+    int32 pages = 1;
+    int32 pagePerNums = 2;
+}
+
+message BrandRequest {
+    int32 id = 1;
+    string name = 2;
+    string logo = 3;
+}
+
+message BrandInfoResponse {
+    int32 id = 1;
+    string name = 2;
+    string logo = 3;
+}
+
+message BrandListResponse {
+    int32 total = 1;
+    repeated BrandInfoResponse data = 2;
+}
+
+message CategoryBrandListResponse {
+    int32 total = 1;
+    repeated CategoryBrandResponse data = 2;
+}

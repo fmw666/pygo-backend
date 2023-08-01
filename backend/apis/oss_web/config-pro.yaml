@@ -1,0 +1,7 @@
+host: '127.0.0.1'
+port: 8848
+namespace: 'e2fe333b-68e6-4e7d-87be-20c2938e1af8'
+user: 'nacos'
+password: 'nacos'
+dataid: 'oss-web.json'
+group: 'pro'

@@ -1,3 +1,13 @@
+
+
+## 项目启动
+
+参考：[quickstart.md](quickstart.md)
+
+## 开发手册
+
+参考：[develop.md](develop.md)
+
 ## 项目介绍
 
 
@@ -10,105 +20,6 @@
 │   ├── goods
 │   │   ├── goods.pb.go
 │   │   ├── goods.proto
-```
-
-## 项目启动
-
-### docker 启动
-
-```bash
-docker-compose up -d
-```
-
-编辑 scripts/config.ini 文件
-
-运行 scripts/main.py --init_nacos 文件，初始化 nacos 配置
-
-#### 数据库初始化
-
-执行 sql 文件夹下的 sql 文件
-
-### 非 docker 启动
-
-services 层必须基于 Linux 或 Mac 环境
-
-#### centos 中创建 python 开发环境
-
-[虚拟机中安装 centos7 - csdn](https://blog.csdn.net/hjp2020/article/details/106156642)
-
-```bash
-# 安装 wget 工具
-yum install wget
-
-# 安装 librocketmq
-wget https://github.com/apache/rocketmq-client-cpp/releases/download/2.2.0/rocketmq-client-cpp-2.2.0-centos7.x86_64.rpm
-sudo rpm -ivh rocketmq-client-cpp-2.2.0-centos7.x86_64.rpm
-
-# 安装系统依赖
-sudo yum install openssl-devel bzip2-devel expat-devel gdbm-devel readline-devel sqlite-devel gcc gcc-c++ libffi-devel python-devel python-devel mariadb-devel
-
-# 安装 python3.8
-wget https://www.python.org/ftp/python/3.8.6/Python-3.8.6.tgz
-tar -zxvf Python-3.8.6.tgz -C /tmp
-cd /tmp/Python-3.8.6
-./configure --prefix=/usr/local/
-make && make altinstall
-
-# 更改 python3.8 软链接
-ln -s /usr/local/bin/python3.8 /usr/bin/python3
-ln -s /usr/local/bin/pip3.8 /usr/bin/pip3
-
-# 安装 virtualenvwrapper
-sudo yum install python-setuptools python-devel
-pip3 install virtualenvwrapper
-
-# 编辑 .bashrc 文件
-sudo yum install vim
-vim ~/.bashrc
-# (添加如下内容)
-VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3
-export WORKON_HOME=$HOME/.virtualenvs
-source /usr/local/bin/virtualenvwrapper.sh
-# (退出后执行)
-source ~/.bashrc
-
-# 创建虚拟环境
-mkvirtualenv -p python3 pygo_srv
-
-# 进入虚拟环境
-workon pygo_srv
-
-# 安装 python 依赖
-pip install rocketmq-client-python
-
-ln -s /usr/local/lib/librocketmq.so /usr/lib
-sudo ldconfig
-
-# 配置防火墙
-firewall-cmd --zone=public --add-port=10911/tcp --permanent
-firewall-cmd --zone=public --add-port=10912/tcp --permanent
-sudo firewall-cmd --reload
-```
-
-## 开发手册
-
-### proto 文件生成
-
-```py
-pip install grpcio
-pip install grpcio-tools==1.43.0
-
-python -m grpc_tools.protoc --python_out=. --grpc_python_out=. -I . *.proto
-
-# change user_pb2_grpc.py
-# from . import user_pb2 as user__pb2
-```
-
-```go
-go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
-go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
-
-protoc --go_out=. --go-grpc_out=. ./*.proto
 ```
 
 ### 服务注册与发现
@@ -135,7 +46,7 @@ nacos
     - [x] oss 服务：8029
     - [x] 支付宝 服务：8023（集成在 order 服务中）
 
-+ 前端服务
++ 前端服务（暂无）
     - [x] vue 服务：8089
 
 + 工具服务
@@ -150,6 +61,7 @@ nacos
     - [x] postgres 服务 (by kong)：5432
     - [x] kong 服务：8000、8001、8443
     - [x] konga 服务：1337
+    - [x] jenkins 服务：9080
 
 ### 文件服务器
 

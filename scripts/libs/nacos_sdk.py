@@ -11,6 +11,18 @@ class NacosClient:
         self.port = port
         self.user = user
         self.password = password
+    
+    def get_version(self) -> Optional[str]:
+        """
+        http://127.0.0.1:8848/nacos/v1/console/server/state
+        {"auth_system_type":"nacos","auth_enabled":"false","version":"2.2.3","login_page_enabled":"false","standalone_mode":"standalone","function_mode":null}
+        """
+        rsp = requests.get(f"http://{self.host}:{self.port}/nacos/v1/console/server/state")
+        if rsp.status_code != 200:
+            return None
+        
+        json_data = rsp.json()
+        return json_data["version"]
 
     def get_all_namespaces(self) -> Optional[list[dict]]:
         """

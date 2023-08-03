@@ -1,4 +1,5 @@
 import configparser
+from typing import Any
 
 
 class ConfigSection:

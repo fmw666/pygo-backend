@@ -72,9 +72,8 @@
 
 ## 6. 自动化部署
 
-- [x] 进入 jenkins web 管理台：`http://127.0.0.1:9080/job/pygo_backend/`
-- [x] 安装插件：pipeline、SSH Credentials Plugin、git、Publish Over SSH
-- [x] 将 `backend/apis` 提交到 git 仓库
-- [x] 将 `backend/services` 提交到 git 仓库
+- [x] 将 `backend/apis` 提交到 git 仓库.
+- [x] 将 `backend/services` 提交到 git 仓库.
+- [x] 进入 jenkins web 管理台：`http://127.0.0.1:9080/job/pygo_backend/`.
 - [x] 在 jenkins 管理台中构建任务.
 - [x] 在 consul 管理台中查看服务是否注册成功.

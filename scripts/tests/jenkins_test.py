@@ -8,7 +8,6 @@ import jenkins
 
 jk = jenkins.Jenkins(url="http://192.168.200.1:9080", username="root", password="123456")
 
-# 创建任务
 folder_name = "pygo_backend"
 
 # 判断文件夹是否存在（目前 api 不支持文件夹改名）

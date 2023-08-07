@@ -7,4 +7,4 @@ from scripts.libs.config_reader import ConfigReader
 
 
 config = ConfigReader("../config.ini")
-print(config.DockerServer.nacos_port)
+print(config.Nacos.users_namespace_desc)

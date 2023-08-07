@@ -15,7 +15,7 @@ class ConfigReader:
     def __init__(self, path):
         self.path = path
         self.config = configparser.ConfigParser()
-        self.config.read(self.path)
+        self.config.read(self.path, encoding="utf-8")
 
         # 遍历 config.ini 中的所有 section，添加到当前对象中为属性
         for section in self.config.sections():

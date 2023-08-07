@@ -126,7 +126,7 @@ class NacosClient:
         return namespaces
 
 
-    def delete_namespace_by_id(self, namespace_id: str) -> None:
+    def delete_namespace_by_id(self, namespace_id: str) -> Optional[dict]:
         """
         http://127.0.0.1:8848/nacos/v1/console/namespaces?namespaceId={test-namespace}
         delete namespace by namespace_id
@@ -217,10 +217,14 @@ class NacosClient:
             "accessToken": "",
             "username": "",
         }
+        # policy: OVERWRITE, ABORT, SKIP
+        data = {
+            "policy": "OVERWRITE",
+        }
         files = {
             "file": open(file_path, "rb")
         }
-        rsp = requests.post(f"http://{self.host}:{self.port}/nacos/v1/cs/configs", params=params, files=files)
+        rsp = requests.post(f"http://{self.host}:{self.port}/nacos/v1/cs/configs", params=params, data=data, files=files)
 
         if rsp.status_code != 200:
             raise Exception(f"import configs failed: {rsp.text}")

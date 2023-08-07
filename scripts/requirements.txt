@@ -1,1 +1,4 @@
+cryptography
 python-jenkins
+pyyaml
+requests

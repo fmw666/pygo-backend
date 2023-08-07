@@ -1,9 +1,7 @@
 <flow-definition plugin="workflow-job@1316.vd2290d3341a_f">
     <actions>
-        <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction
-            plugin="pipeline-model-definition@2.2144.v077a_d1928a_40" />
-        <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction
-            plugin="pipeline-model-definition@2.2144.v077a_d1928a_40">
+        <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@2.2144.v077a_d1928a_40" />
+        <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@2.2144.v077a_d1928a_40">
             <jobProperties />
             <triggers />
             <parameters />
@@ -22,8 +20,7 @@
             </triggers>
         </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
     </properties>
-    <definition class="org.jenkinsci.plugins.workflow.cps.CpsScmFlowDefinition"
-        plugin="workflow-cps@3726.v83f8cff396c9">
+    <definition class="org.jenkinsci.plugins.workflow.cps.CpsScmFlowDefinition" plugin="workflow-cps@3726.v83f8cff396c9">
         <scm class="hudson.plugins.git.GitSCM" plugin="git@5.2.0">
             <configVersion>2</configVersion>
             <userRemoteConfigs>
@@ -41,7 +38,7 @@
             <submoduleCfg class="empty-list" />
             <extensions />
         </scm>
-        <scriptPath>Jenkinsfile</scriptPath>
+        <scriptPath>userop_srv/Jenkinsfile</scriptPath>
         <lightweight>true</lightweight>
     </definition>
     <triggers />

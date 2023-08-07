@@ -38,3 +38,32 @@ go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 protoc --go_out=. --go-grpc_out=. ./*.proto
 ```
 
+### `scripts/utils/init_config.py`
+
+1. 读取 `config.ini` 配置文件信息：
+    + 修改 nacosfiles 中的 host、mysql、redis、consul、rocketmq、jaeger、ali_sms、alipay、oss 配置信息.
+1. 读取 `config.ini` 中 **Nacos** 信息：
+    + 修改 services/**/config.json 中的 nacos 配置信息.
+    + 修改 apis/**/config.yaml 中的 nacos 配置信息.
+1. 读取 `config.ini` 中 **Jenkins** 信息：
+    + 修改 jenkinscfg 下配置文件信息.
+    + 修改 services/**/Jenkinsfile 中的 git、remote server 配置信息.
+
+### `scripts/utils/init_nacos.py`
+
+1. 删除所有 id 相同的命名空间，创建新的命名空间.
+1. 向各命名空间中导入 nacosfiles 下的配置文件.
+
+### `scripts/utils/init_mysql.py`
+
+1. 通过 pymysql 连接 mysql，并创建数据库.
+1. 通过运行 `python backend/services/xxx_srv/model/models.py` 来创建表和初始化表记录.
+    1. 读取 `backend/services/xxx_srv/settings/settings.py` 中的 nacos 配置信息.
+    1. 通过 nacos 配置信息获取 nacos 管理台中的数据库配置信息.（需保证 --init_nacos 已正确执行）
+
+### `scripts/utils/init_jenkins.py`
+
+1. 创建文件夹，若存在同名文件夹则报错退出.
+1. 安装 jenkins 插件：`Localization: Chinese (Simplified)`, `SSH Credentials`, `Publish Over SSH`, `Pipeline`, `Git`.
+1. 读取 jenkinscfg 下凭证配置文件信息，在文件夹下创建 jenkins 凭证.
+1. 读取 jenkinscfg 下配置文件信息，在文件夹下创建 jenkins 任务.

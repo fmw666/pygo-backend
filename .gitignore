@@ -8,3 +8,4 @@ nacos-data/
 dockerfiles/data/*
 dockerfiles/logs/
 dockerfiles/store/
+config.local.ini

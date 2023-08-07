@@ -1,0 +1,60 @@
+pipeline {
+    agent any
+    stages {
+        stage('Pull code from git') {
+            steps {
+                git credentialsId: "gitee-user-password", url: "https://gitee.com/maovo/pygo-apis.git"
+            }
+        }
+        stage('Build project') {
+            steps {
+                sh '''echo "配置 go 语言环境变量"
+                    export GOROOT=/usr/local/go
+                    export PATH=$PATH:$GOROOT/bin
+
+                    echo "开启 go module"
+                    go env -w GO111MODULE=on
+                    go env -w GOPROXY=https://goproxy.io
+
+                    echo "准备好目录结构"
+                    chmod 777 -R goods_web/
+                    mkdir -vp goods_web/target/goods_web
+                    cp goods_web/config-pro.yaml goods_web/target/config-debug.yaml
+                    cp goods_web/start.sh goods_web/target/start.sh
+
+                    echo "执行 go build 生成可执行文件"
+                    go build -o goods_web/target/goods_web_main goods_web/main.go
+                    echo "完成构建"
+                    '''
+            }
+        }
+        stage('Deploy') {
+            steps {
+                sshPublisher(
+                    publishers: [
+                        sshPublisherDesc(
+                            configName: "192.168.200.129",
+                            transfers: [
+                                sshTransfer(
+                                    cleanRemote: false,
+                                    excludes: '',
+                                    execCommand: 'cd /docker/golang/goods_web/target && chmod +x start.sh && ./start.sh',
+                                    remoteDirectory: '/docker/golang',
+                                    remoteDirectorySDF: false,
+                                    removePrefix: '',
+                                    sourceFiles: 'goods_web/target/**'
+                                )
+                            ],
+                            usePromotionTimestamp: false,
+                            useWorkspaceInPromotion: false,
+                        )
+                    ],
+                    continueOnError: false,
+                    failOnError: true,
+                    alwaysPublishFromMaster: false
+                )
+            }
+        }
+
+    }
+}

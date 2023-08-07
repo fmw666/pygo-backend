@@ -3,7 +3,7 @@ pipeline {
     stages {
         stage('Pull code from git') {
             steps {
-                git credentialsId: 'gitee-user-password', url: 'https://gitee.com/maovo/pygo-apis.git'
+                git credentialsId: "gitee-user-password", url: "https://gitee.com/maovo/pygo-apis.git"
             }
         }
         stage('Build project') {
@@ -17,13 +17,13 @@ pipeline {
                     go env -w GOPROXY=https://goproxy.io
 
                     echo "准备好目录结构"
-                    chmod 777 -R goods_web/
-                    mkdir -vp goods_web/target/goods_web
-                    cp goods_web/config-pro.yaml goods_web/target/config-debug.yaml
-                    cp goods_web/start.sh goods_web/target/start.sh
+                    chmod 777 -R order_web/
+                    mkdir -vp order_web/target/order_web
+                    cp order_web/config-pro.yaml order_web/target/config-debug.yaml
+                    cp order_web/start.sh order_web/target/start.sh
 
                     echo "执行 go build 生成可执行文件"
-                    go build -o goods_web/target/goods_web_main goods_web/main.go
+                    go build -o order_web/target/goods_web_main order_web/main.go
                     echo "完成构建"
                     '''
             }
@@ -33,16 +33,16 @@ pipeline {
                 sshPublisher(
                     publishers: [
                         sshPublisherDesc(
-                            configName: '192.168.200.129',
+                            configName: "192.168.200.129",
                             transfers: [
                                 sshTransfer(
                                     cleanRemote: false,
                                     excludes: '',
-                                    execCommand: 'cd /docker/golang/goods_web/target && chmod +x start.sh && ./start.sh',
+                                    execCommand: 'cd /docker/golang/order_web/target && chmod +x start.sh && ./start.sh',
                                     remoteDirectory: '/docker/golang',
                                     remoteDirectorySDF: false,
                                     removePrefix: '',
-                                    sourceFiles: 'goods_web/target/**'
+                                    sourceFiles: 'order_web/target/**'
                                 )
                             ],
                             usePromotionTimestamp: false,

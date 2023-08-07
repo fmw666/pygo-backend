@@ -14,22 +14,28 @@ networks:
 
 services:
 
-  # mysql:
-  #   image: mysql:8.0.19
-  #   container_name: mysql
-  #   restart: always
-  #   environment:
-  #     MYSQL_ROOT_PASSWORD: 123456
-  #     MYSQL_DATABASE: test
-  #     MYSQL_USER: test
-  #     MYSQL_PASSWORD: 123456
+  mysql:
+    image: mysql:8.0.19
+    container_name: mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_AUTH_PLUGIN: mysql_native_password
+    ports:
+      - ${MYSQL_PORT}:3306
+    volumes:
+      - ./dockerfiles/data/mysql:/var/lib/mysql
   
   redis:
     image: redis:6.0.9
     container_name: redis
     restart: always
+    volumes:
+      - ./dockerfiles/data/redis:/data
     ports:
-      - 6379:6379
+      - ${REDIS_PORT}:6379
     networks:
       - backend
 
@@ -39,9 +45,9 @@ services:
     environment:
       - TZ=Asia/Shanghai
       - ALLOW_NONE_AUTHENTICATION=yes
-      - CONSUL_ADVERTISE_CLIENT_URLS=http://consul:8500
+      - CONSUL_ADVERTISE_CLIENT_URLS=http://consul:${CONSUL_PORT}
     ports:
-      - 8500:8500
+      - ${CONSUL_PORT}:8500
       - 8600:8600/udp
     command: "agent -server -ui -bootstrap-expect=1 -client=0.0.0.0"
     networks:
@@ -54,7 +60,7 @@ services:
     container_name: nacos
     restart: always
     ports:
-      - 8848:8848
+      - ${NACOS_PORT}:8848
     environment:
       - PREFER_HOST_MODE=hostname
       - MODE=standalone
@@ -76,7 +82,7 @@ services:
     container_name: jaeger
     restart: always
     ports:
-      - 6831:6831/udp
+      - ${JAEGER_PORT}:6831/udp
       - 16686:16686
     networks:
       - backend
@@ -86,7 +92,7 @@ services:
     image: foxiswho/rocketmq:server
     container_name: rmqnamesrv
     ports:
-      - 9876:9876
+      - ${ROCKETMQ_PORT}:9876
     volumes:
       - ./dockerfiles/logs:/opt/logs
       - ./dockerfiles/store:/opt/store
@@ -121,7 +127,7 @@ services:
     image: styletang/rocketmq-console-ng
     container_name: rmqconsole
     ports:
-      - 8080:8080
+      - ${ROCKETMQ_CONSOLE_PORT}:8080
     environment:
         JAVA_OPTS: "-Drocketmq.namesrv.addr=rmqnamesrv:9876 -Dcom.rocketmq.sendMessageWithVIPChannel=false"
     depends_on:
@@ -239,8 +245,9 @@ services:
       - TZ=Asia/Shanghai
     volumes:
       - ./dockerfiles/data/jenkins/:/var/jenkins_home
+      - ./dockerfiles/logs/jenkins/:/var/log/jenkins
     ports:
-      - 9080:8080
+      - ${JENKINS_PORT}:8080
       - 50000:50000
     networks:
       - backend

@@ -70,15 +70,14 @@ class InventoryHistory(BaseModel):
 
 
 if __name__ == "__main__":
-    settings.DB.create_tables([InventoryHistory])
+    settings.DB.create_tables([Inventory, InventoryHistory])
 
     # 设置初始化值
-    # for i in range(421, 848):
-    #     inv = Inventory.select().where(Inventory.goods == i).first()
-    #     if inv:
-    #         inv.stocks = 100    
-    #         inv.save()
-    #     else:
-    #         inv = Inventory(goods=i, stocks=100)
-    #         inv.save(force_insert=True)
-        
+    for i in range(421, 848):
+        inv = Inventory.select().where(Inventory.goods == i).first()
+        if inv:
+            inv.stocks = 100    
+            inv.save()
+        else:
+            inv = Inventory(goods=i, stocks=100)
+            inv.save(force_insert=True)

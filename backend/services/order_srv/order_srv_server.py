@@ -15,9 +15,9 @@ from rocketmq.client import PushConsumer
 
 from common.grpc_health.v1 import health, health_pb2_grpc
 from common.register import consul
-from inventory_srv.handler.inventory import InventoryServicer, reback_inventory
-from inventory_srv.proto import inventory_pb2_grpc
-from inventory_srv.settings import settings
+from order_srv.handler.order import OrderServicer, order_timeout
+from order_srv.proto import order_pb2_grpc
+from order_srv.settings import settings
 
 
 def signal_on_exit(signo, frame, service_id=None):
@@ -42,7 +42,7 @@ def serve():
     parser.add_argument("--ip",
                         nargs="?",
                         type=str,
-                        default="192.168.200.129",
+                        default=settings.HOST,
                         help="binding ip"
                         )
     parser.add_argument("--port",
@@ -59,11 +59,11 @@ def serve():
     else:
         port = args.port
 
-    logger.add("logs/inventory_srv_{time}.log", rotation="500 MB", encoding="utf-8")
+    logger.add("logs/order_srv_{time}.log", rotation="500 MB", encoding="utf-8")
 
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-    # register inventory service
-    inventory_pb2_grpc.add_InventoryServicer_to_server(InventoryServicer(), server)
+    # register order service
+    order_pb2_grpc.add_OrderServicer_to_server(OrderServicer(), server)
     # register health service
     health_pb2_grpc.add_HealthServicer_to_server(health.HealthServicer(), server)
     server.add_insecure_port(f"{args.ip}:{port}")
@@ -75,11 +75,11 @@ def serve():
     signal.signal(signal.SIGTERM, partial(signal_on_exit, service_id=service_id))
 
     # server start
-    logger.info(f"server inventory start at {args.ip}:{port}")
+    logger.info(f"server order start at {args.ip}:{port}")
     server.start()
 
     # register service
-    logger.info(f"register inventory service to consul")
+    logger.info(f"register order service to consul")
     register = consul.ConsulRegister(settings.CONSUL_HOST, settings.CONSUL_PORT)
     if not register.register(
         name=settings.SERVICE_NAME,
@@ -89,13 +89,13 @@ def serve():
         tags=settings.SERVICE_TAGS,
         check=None,
     ):
-        logger.error(f"register inventory service to consul failed")
+        logger.error(f"register order service to consul failed")
         sys.exit(0)
 
-    # listen the rocketmq topic, and update the inventory
-    consumer = PushConsumer("pygo_inventory")
+    # listen rocketmq
+    consumer = PushConsumer("pygo_order")
     consumer.set_name_server_address(f"{settings.ROCKETMQ_HOST}:{settings.ROCKETMQ_PORT}")
-    consumer.subscribe("order_reback", callback=reback_inventory)
+    consumer.subscribe("order_timeout", order_timeout)
     consumer.start()
 
     server.wait_for_termination()

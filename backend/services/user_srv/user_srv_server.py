@@ -41,7 +41,7 @@ def serve():
     parser.add_argument("--ip",
                         nargs="?",
                         type=str,
-                        default="192.168.200.129",
+                        default=settings.HOST,
                         help="binding ip"
                         )
     parser.add_argument("--port",

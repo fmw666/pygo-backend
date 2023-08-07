@@ -3,7 +3,7 @@ pipeline {
     stages {
         stage('Pull code from git') {
             steps {
-                git credentialsId: 'gitee-user-password', url: 'https://gitee.com/maovo/pygo-srvs.git'
+                git credentialsId: "gitee-user-password", url: "https://gitee.com/maovo/pygo-srvs.git"
             }
         }
         stage('Build project') {
@@ -16,7 +16,7 @@ pipeline {
                 sshPublisher(
                     publishers: [
                         sshPublisherDesc(
-                            configName: '192.168.200.129',
+                            configName: "192.168.200.129",
                             transfers: [
                                 sshTransfer(
                                     cleanRemote: false,
@@ -25,12 +25,12 @@ pipeline {
                                     remoteDirectory: '/docker/python',
                                     remoteDirectorySDF: false,
                                     removePrefix: '',
-                                    sourceFiles: 'goods_srv/**'
+                                    sourceFiles: 'inventory_srv/**'
                                 ),
                                 sshTransfer(
                                     cleanRemote: false,
                                     excludes: '',
-                                    execCommand: 'chmod +x /docker/python/goods_srv/start.sh && cd /docker/python/goods_srv/ && ./start.sh',
+                                    execCommand: 'chmod +x /docker/python/inventory_srv/start.sh && cd /docker/python/inventory_srv/ && ./start.sh',
                                     remoteDirectory: '/docker/python',
                                     remoteDirectorySDF: false,
                                     removePrefix: '',

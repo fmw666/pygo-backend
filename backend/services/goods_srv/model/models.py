@@ -1,3 +1,7 @@
+import os
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+
 from datetime import datetime
 
 from peewee import *
@@ -114,13 +118,15 @@ class Banner(BaseModel):
 
 if __name__ == "__main__":
     settings.DB.create_tables([Category, Brands, Goods, GoodsCategoryBrand, Banner])
-    # c1 = Category(name="电脑", level=1)
-    # c2 = Category(name="笔记本电脑", level=2, parent_category=c1)
-    # c1.save()
-    # c2.save()
-
-    # c1 = Category.get(Category.id == 1)
-    # c1.delete_instance()
-
-    # for c in Category.select():
-    #     print(c.name)
+    
+    # list all sql files and execute
+    sql_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "sql")
+    for filename in os.listdir(sql_path):
+        if not filename.endswith(".sql"):
+            continue
+        with open(os.path.join(sql_path, filename), "r", encoding="utf-8") as f:
+            sql_statements = f.read().split(";")    
+            for sql in sql_statements:
+                if sql.strip():
+                    settings.DB.execute_sql(sql)
+        

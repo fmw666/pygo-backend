@@ -1,3 +1,4 @@
+import os
 import json
 
 import redis
@@ -11,14 +12,17 @@ class ReconnectMysqlDatabase(ReconnectMixin, PooledMySQLDatabase):
     pass
 
 
+config_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "config.json")
+config_json_data = json.loads(open(config_path, "r", encoding="utf-8").read())
+
 NACOS = {
-    "Host": "192.168.1.2",
-    "Port": 8848,
-    "NameSpace": "d3ea228f-7e26-441f-9a92-a1742354e796",
-    "User": "nacos",
-    "Password": "nacos",
-    "DataId": "inventory-srv.json",
-    "Group": "dev",
+    "Host": config_json_data["nacos"]["host"],
+    "Port": config_json_data["nacos"]["port"],
+    "NameSpace": config_json_data["nacos"]["namespace"],
+    "User": config_json_data["nacos"]["user"],
+    "Password": config_json_data["nacos"]["password"],
+    "DataId": config_json_data["nacos"]["data_id"],
+    "Group": config_json_data["nacos"]["group"],
 }
 
 client = nacos.NacosClient(
@@ -43,6 +47,9 @@ DB = ReconnectMysqlDatabase(
     user=data["mysql"]["user"],
     password=data["mysql"]["password"],
 )
+
+# Host
+HOST = data["host"]
 
 # Consul
 CONSUL_HOST = data["consul"]["host"]

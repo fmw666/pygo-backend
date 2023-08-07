@@ -1,4 +1,3 @@
-from peewee import *
 import os
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
@@ -6,7 +5,9 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(
 from datetime import datetime
 
 from userop_srv.settings import settings
-from common.database.db_ini import DBInit
+from common.database.init_db import DBInit
+
+from peewee import *
 
 
 class BaseModel(Model):
@@ -92,12 +93,4 @@ class UserFavorite(BaseModel):
 
 
 if __name__ == "__main__":
-    db_init = DBInit(
-        settings.data["mysql"]["host"],
-        settings.data["mysql"]["port"],
-        settings.data["mysql"]["user"],
-        settings.data["mysql"]["password"],
-    )
-    db_init.create_if_not_exist(settings.data["mysql"]["db"])
-    
     settings.DB.create_tables([LeaveMessage, Address, UserFavorite])

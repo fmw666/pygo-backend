@@ -1,0 +1,12 @@
+{
+    "nacos": {
+        "host": "192.168.200.1",
+        "port": 8848,
+        "namespace": "068d14d8-6b29-498f-b824-40e92e03a3bd",
+        "user": "nacos",
+        "password": "nacos",
+        "data_id": "user-srv.json",
+        "group": "dev"
+    },
+    "host": "192.168.200.129"
+}

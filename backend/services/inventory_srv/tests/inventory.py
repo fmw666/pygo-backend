@@ -1,9 +1,3 @@
-import os
-import sys
-# append ../ to sys.path
-sys.path.append(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "../"))
-
-import time
 
 import consul
 import grpc
@@ -17,7 +11,7 @@ class InventoryTest:
         # try to connect to the server
         c = consul.Consul(host="127.0.0.1", port=8500)
         services = c.agent.services()
-        
+
         ip = ""
         port = ""
         for _, v in services.items():
@@ -25,10 +19,10 @@ class InventoryTest:
                 ip = v["Address"]
                 port = v["Port"]
                 break
-        
+
         if ip == "" or port == "":
             raise Exception("no service available")
-        
+
         channel = grpc.insecure_channel(f"{ip}:{port}")
         self.stub = inventory_pb2_grpc.InventoryStub(channel)
 
@@ -36,7 +30,7 @@ class InventoryTest:
         self.stub.SetInv(
             inventory_pb2.GoodsInvInfo(goodsId=10, num=90)
         )
-    
+
     def get_inv(self):
         rsp: inventory_pb2.GoodsInvInfo = self.stub.InvDetail(
             inventory_pb2.GoodsInvInfo(goodsId=10)

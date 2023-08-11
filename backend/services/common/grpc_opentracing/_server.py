@@ -6,8 +6,9 @@ import re
 
 import grpc
 from common.grpc_opentracing import grpcext, ActiveSpanSource
-from common.grpc_opentracing._utilities import get_method_type, get_deadline_millis,\
+from common.grpc_opentracing._utilities import (
     log_or_wrap_request_or_iterator, RpcInfo
+)
 import opentracing
 from opentracing.ext import tags as ot_tags
 
@@ -81,13 +82,15 @@ def _add_peer_tags(peer_str, tags):
     logging.warning('Unrecognized peer: \"%s\"', peer_str)
 
 
-# On the service-side, errors can be signaled either by exceptions or by calling
-# `set_code` on the `servicer_context`. This function checks for the latter and
-# updates the span accordingly.
+# On the service-side, errors can be signaled either by exceptions or by
+# calling `set_code` on the `servicer_context`. This function checks for
+# the latter and updates the span accordingly.
 def _check_error_code(span, servicer_context, rpc_info):
     if servicer_context.code != grpc.StatusCode.OK:
         span.set_tag('error', True)
-        error_log = {'event': 'error', 'error.kind': str(servicer_context.code)}
+        error_log = {
+            'event': 'error', 'error.kind': str(servicer_context.code)
+        }
         if servicer_context.details is not None:
             error_log['message'] = servicer_context.details
         span.log_kv(error_log)
@@ -140,7 +143,7 @@ class OpenTracingServerInterceptor(grpcext.UnaryServerInterceptor,
                 servicer_context, span)
             try:
                 response = handler(request, servicer_context)
-            except:
+            except Exception:
                 e = sys.exc_info()[0]
                 span.set_tag('error', True)
                 span.log_kv({'event': 'error', 'error.object': e})
@@ -157,8 +160,8 @@ class OpenTracingServerInterceptor(grpcext.UnaryServerInterceptor,
             return response
 
     # For RPCs that stream responses, the result can be a generator. To record
-    # the span across the generated responses and detect any errors, we wrap the
-    # result in a new generator that yields the response values.
+    # the span across the generated responses and detect any errors, we wrap
+    # the result in a new generator that yields the response values.
     def _intercept_server_stream(self, request_or_iterator, servicer_context,
                                  server_info, handler):
         with self._start_span(servicer_context,
@@ -180,7 +183,7 @@ class OpenTracingServerInterceptor(grpcext.UnaryServerInterceptor,
                     if self._log_payloads:
                         span.log_kv({'response': response})
                     yield response
-            except:
+            except Exception:
                 e = sys.exc_info()[0]
                 span.set_tag('error', True)
                 span.log_kv({'event': 'error', 'error.object': e})
@@ -210,7 +213,7 @@ class OpenTracingServerInterceptor(grpcext.UnaryServerInterceptor,
                 servicer_context, span)
             try:
                 response = handler(request_or_iterator, servicer_context)
-            except:
+            except Exception:
                 e = sys.exc_info()[0]
                 span.set_tag('error', True)
                 span.log_kv({'event': 'error', 'error.object': e})
@@ -225,4 +228,3 @@ class OpenTracingServerInterceptor(grpcext.UnaryServerInterceptor,
             if self._span_decorator is not None:
                 self._span_decorator(span, rpc_info)
             return response
-        

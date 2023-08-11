@@ -26,7 +26,9 @@ class UserServicer(user_pb2_grpc.UserServicer):
         if user.gender:
             user_info_rsp.gender = user.gender
         if user.birthday:
-            user_info_rsp.birthDay = int(time.mktime(user.birthday.timetuple()))
+            user_info_rsp.birthDay = int(
+                time.mktime(user.birthday.timetuple())
+            )
 
         return user_info_rsp
 
@@ -53,7 +55,7 @@ class UserServicer(user_pb2_grpc.UserServicer):
             rsp.data.append(self.convert_user_to_rsp(user))
 
         return rsp
-    
+
     @logger.catch
     def GetUserById(self, request: user_pb2.IdRequest, context):
         try:
@@ -73,7 +75,7 @@ class UserServicer(user_pb2_grpc.UserServicer):
             context.set_code(grpc.StatusCode.NOT_FOUND)
             context.set_details("user not found")
             return user_pb2.UserInfoResponse()
-        
+
     @logger.catch
     def CreateUser(self, request: user_pb2.CreateUserInfo, context):
         try:
@@ -105,7 +107,9 @@ class UserServicer(user_pb2_grpc.UserServicer):
             context.set_code(grpc.StatusCode.NOT_FOUND)
             context.set_details("user not found")
             return user_pb2.UserInfoResponse()
-    
+
     @logger.catch
     def CheckPassword(self, request: user_pb2.PasswordCheckInfo, context):
-        return user_pb2.CheckPasswordResponse(success=pbkdf2_sha256.verify(request.password, request.encryptedPassword))
+        return user_pb2.CheckPasswordResponse(
+            success=pbkdf2_sha256.verify(request.password,
+                                         request.encryptedPassword))

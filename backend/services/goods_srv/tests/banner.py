@@ -1,10 +1,3 @@
-import os
-import sys
-# append ../ to sys.path
-sys.path.append(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "../"))
-
-import time
-import json
 
 import consul
 import grpc
@@ -20,7 +13,7 @@ class BannerTest:
         # try to connect to the server
         c = consul.Consul(host="127.0.0.1", port=8500)
         services = c.agent.services()
-        
+
         ip = ""
         port = ""
         for _, v in services.items():
@@ -28,17 +21,19 @@ class BannerTest:
                 ip = v["Address"]
                 port = v["Port"]
                 break
-        
+
         if ip == "" or port == "":
             raise Exception("no service available")
-        
+
         channel = grpc.insecure_channel(f"{ip}:{port}")
         self.stub = banner_pb2_grpc.BannerStub(channel)
 
     def banner_list(self):
-        rsp: banner_pb2.BannerListResponse = self.stub.BannerList(empty_pb2.Empty())
+        rsp: banner_pb2.BannerListResponse = (
+            self.stub.BannerList(empty_pb2.Empty())
+        )
         print(rsp)
-    
+
     def create_banner(self, image, index, url):
         rsp: banner_pb2.BannerResponse = self.stub.CreateBanner(
             banner_pb2.BannerRequest(
@@ -48,7 +43,7 @@ class BannerTest:
             )
         )
         print(rsp)
-    
+
     def delete_banner(self, id):
         self.stub.DeleteBanner(banner_pb2.BannerRequest(id=id))
 

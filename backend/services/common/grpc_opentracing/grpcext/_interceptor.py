@@ -13,8 +13,10 @@ class _UnaryClientInfo(
 
 
 class _StreamClientInfo(
-        collections.namedtuple('_StreamClientInfo', (
-            'full_method', 'is_client_stream', 'is_server_stream', 'timeout'))):
+        collections.namedtuple(
+            '_StreamClientInfo',
+            ('full_method', 'is_client_stream', 'is_server_stream', 'timeout')
+        )):
     pass
 
 
@@ -31,18 +33,19 @@ class _InterceptorUnaryUnaryMultiCallable(grpc.UnaryUnaryMultiCallable):
             return self._base_callable(request, timeout, metadata, credentials)
 
         client_info = _UnaryClientInfo(self._method, timeout)
-        return self._interceptor.intercept_unary(request, metadata, client_info,
-                                                 invoker)
+        return self._interceptor.intercept_unary(request, metadata,
+                                                 client_info, invoker)
 
-    def with_call(self, request, timeout=None, metadata=None, credentials=None):
+    def with_call(self, request, timeout=None, metadata=None,
+                  credentials=None):
 
         def invoker(request, metadata):
             return self._base_callable.with_call(request, timeout, metadata,
                                                  credentials)
 
         client_info = _UnaryClientInfo(self._method, timeout)
-        return self._interceptor.intercept_unary(request, metadata, client_info,
-                                                 invoker)
+        return self._interceptor.intercept_unary(request, metadata,
+                                                 client_info, invoker)
 
     def future(self, request, timeout=None, metadata=None, credentials=None):
 
@@ -51,8 +54,8 @@ class _InterceptorUnaryUnaryMultiCallable(grpc.UnaryUnaryMultiCallable):
                                               credentials)
 
         client_info = _UnaryClientInfo(self._method, timeout)
-        return self._interceptor.intercept_unary(request, metadata, client_info,
-                                                 invoker)
+        return self._interceptor.intercept_unary(request, metadata,
+                                                 client_info, invoker)
 
 
 class _InterceptorUnaryStreamMultiCallable(grpc.UnaryStreamMultiCallable):

@@ -1,9 +1,6 @@
 import abc
-import enum
 
 import six
-
-import grpc
 
 
 class ActiveSpanSource(six.with_metaclass(abc.ABCMeta)):
@@ -23,7 +20,7 @@ class RpcInfo(six.with_metaclass(abc.ABCMeta)):
     """Provides information for an RPC call.
 
   Attributes:
-    full_method: A string of the full RPC method, i.e., /package.service/method.
+    full_method: A string of the full RPC method, i.e., /package.service/method
     metadata: The initial :term:`metadata`.
     timeout: The length of time in seconds to wait for the computation to
       terminate or be cancelled.
@@ -88,8 +85,6 @@ def open_tracing_server_interceptor(tracer,
     return _server.OpenTracingServerInterceptor(tracer, log_payloads,
                                                 span_decorator)
 
-
-###################################  __all__  #################################
 
 __all__ = ('ActiveSpanSource', 'RpcInfo', 'SpanDecorator',
            'open_tracing_client_interceptor',

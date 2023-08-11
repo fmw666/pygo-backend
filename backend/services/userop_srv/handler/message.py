@@ -12,11 +12,11 @@ class MessageServicer(message_pb2_grpc.MessageServicer):
         messages = LeaveMessage.select()
         if request.userId:
             messages = messages.where(LeaveMessage.user == request.userId)
-        
+
         rsp.total = messages.count()
         for msg in messages:
             msg_rsp = message_pb2.MessageResponse()
-            
+
             msg_rsp.id = msg.id
             msg_rsp.userId = msg.user
             msg_rsp.messageType = msg.message_type
@@ -27,7 +27,7 @@ class MessageServicer(message_pb2_grpc.MessageServicer):
             rsp.data.append(msg_rsp)
 
         return rsp
-    
+
     @logger.catch
     def CreateMessage(self, request: message_pb2.MessageRequest, context):
         message = LeaveMessage(
@@ -46,4 +46,3 @@ class MessageServicer(message_pb2_grpc.MessageServicer):
             message=message.message,
             file=message.file
         )
-    

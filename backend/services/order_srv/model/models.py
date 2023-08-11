@@ -1,10 +1,7 @@
-import os
-import sys
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-
 from datetime import datetime
 
-from peewee import *
+from peewee import (Model, DateTimeField, BooleanField, IntegerField,
+                    CharField, DecimalField)
 
 from order_srv.settings import settings
 
@@ -18,7 +15,7 @@ class BaseModel(Model):
         if self._pk is not None:
             self.update_time = datetime.now()
         return super().save(*args, **kwargs)
-    
+
     @classmethod
     def delete(cls, permanently: bool = False):
         """
@@ -29,7 +26,8 @@ class BaseModel(Model):
         else:
             return super().update(is_deleted=True)
 
-    def delete_instance(self, permanently: bool = False, recursive: bool = ..., delete_nullable: bool = ...):
+    def delete_instance(self, permanently: bool = False, recursive: bool = ...,
+                        delete_nullable: bool = ...):
         """
         permanently: True: 真实删除; False: 逻辑删除
         """
@@ -38,10 +36,10 @@ class BaseModel(Model):
         else:
             self.is_deleted = True
             return self.save()
-    
+
     @classmethod
     def select(cls, *fields):
-        return super().select(*fields).where(cls.is_deleted == False)
+        return super().select(*fields).where(is_deleted=False)
 
     class Meta:
         database = settings.DB
@@ -74,11 +72,16 @@ class OrderInfo(BaseModel):
     )
 
     user = IntegerField(verbose_name="用户id")
-    order_sn = CharField(max_length=30, null=True, unique=True, verbose_name="订单号")
-    pay_type = CharField(choices=PAY_TYPE, default="ALIPAY", max_length=10, verbose_name="支付类型")
-    status = CharField(choices=ORDER_STATUS, default="PAYING", max_length=30, verbose_name="订单状态")
-    trade_no = CharField(max_length=100, null=True, unique=True, verbose_name="交易号")
-    order_mount = DecimalField(max_digits=10, decimal_places=2, verbose_name="订单金额")
+    order_sn = CharField(max_length=30, null=True, unique=True,
+                         verbose_name="订单号")
+    pay_type = CharField(choices=PAY_TYPE, default="ALIPAY", max_length=10,
+                         verbose_name="支付类型")
+    status = CharField(choices=ORDER_STATUS, default="PAYING", max_length=30,
+                       verbose_name="订单状态")
+    trade_no = CharField(max_length=100, null=True, unique=True,
+                         verbose_name="交易号")
+    order_mount = DecimalField(max_digits=10, decimal_places=2,
+                               verbose_name="订单金额")
     pay_time = DateTimeField(null=True, verbose_name="支付时间")
 
     address = CharField(max_length=100, default="", verbose_name="收货地址")
@@ -95,7 +98,8 @@ class OrderGoods(BaseModel):
     goods = IntegerField(verbose_name="商品id")
     goods_name = CharField(max_length=100, verbose_name="商品名称")
     goods_image = CharField(max_length=200, verbose_name="商品图片")
-    goods_price = DecimalField(max_digits=10, decimal_places=2, verbose_name="商品价格")
+    goods_price = DecimalField(max_digits=10, decimal_places=2,
+                               verbose_name="商品价格")
     nums = IntegerField(default=0, verbose_name="购买数量")
 
 

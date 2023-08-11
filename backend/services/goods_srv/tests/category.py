@@ -1,9 +1,3 @@
-import os
-import sys
-# append ../ to sys.path
-sys.path.append(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "../"))
-
-import time
 import json
 
 import consul
@@ -20,7 +14,7 @@ class CategoryTest:
         # try to connect to the server
         c = consul.Consul(host="127.0.0.1", port=8500)
         services = c.agent.services()
-        
+
         ip = ""
         port = ""
         for _, v in services.items():
@@ -28,18 +22,20 @@ class CategoryTest:
                 ip = v["Address"]
                 port = v["Port"]
                 break
-        
+
         if ip == "" or port == "":
             raise Exception("no service available")
-        
+
         channel = grpc.insecure_channel(f"{ip}:{port}")
         self.stub = category_pb2_grpc.CategoryStub(channel)
 
     def category_list(self):
-        rsp: category_pb2.CategoryListResponse = self.stub.GetAllCategorysList(empty_pb2.Empty())
+        rsp: category_pb2.CategoryListResponse = (
+            self.stub.GetAllCategorysList(empty_pb2.Empty())
+        )
         data = json.loads(rsp.jsonData)
         print(data)
-    
+
     def sub_category_list(self, id):
         rsp: category_pb2.SubCategoryListResponse = self.stub.GetSubCategory(
             category_pb2.CategoryListRequest(id=id)

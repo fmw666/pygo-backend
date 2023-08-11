@@ -1,6 +1,4 @@
-import os
 import sys
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import argparse
 import signal
@@ -17,13 +15,15 @@ from common.register import consul
 from userop_srv.handler.address import AddressServicer
 from userop_srv.handler.message import MessageServicer
 from userop_srv.handler.userfavorite import UserFavoriteServicer
-from userop_srv.proto import address_pb2_grpc, message_pb2_grpc, userfavorite_pb2_grpc
+from userop_srv.proto import (address_pb2_grpc, message_pb2_grpc,
+                              userfavorite_pb2_grpc)
 from userop_srv.settings import settings
 
 
 def signal_on_exit(signo, frame, service_id=None):
     logger.info(f"deregister service {service_id} from consul...")
-    register = consul.ConsulRegister(settings.CONSUL_HOST, settings.CONSUL_PORT)
+    register = consul.ConsulRegister(settings.CONSUL_HOST,
+                                     settings.CONSUL_PORT)
     register.deregister(service_id)
     logger.info(f"deregister service {service_id} from consul success")
     sys.exit(0)
@@ -60,30 +60,36 @@ def serve():
     else:
         port = args.port
 
-    logger.add("logs/userop_srv_{time}.log", rotation="500 MB", encoding="utf-8")
+    logger.add("logs/userop_srv_{time}.log", rotation="500 MB",
+               encoding="utf-8")
 
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     # register userop service
     address_pb2_grpc.add_AddressServicer_to_server(AddressServicer(), server)
     message_pb2_grpc.add_MessageServicer_to_server(MessageServicer(), server)
-    userfavorite_pb2_grpc.add_UserFavoriteServicer_to_server(UserFavoriteServicer(), server)
+    userfavorite_pb2_grpc.add_UserFavoriteServicer_to_server(
+        UserFavoriteServicer(), server)
     # register health service
-    health_pb2_grpc.add_HealthServicer_to_server(health.HealthServicer(), server)
+    health_pb2_grpc.add_HealthServicer_to_server(health.HealthServicer(),
+                                                 server)
     server.add_insecure_port(f"{args.ip}:{port}")
 
     service_id = str(uuid.uuid1())
 
     # main process listen to SIGINT and SIGTERM
-    signal.signal(signal.SIGINT, partial(signal_on_exit, service_id=service_id))
-    signal.signal(signal.SIGTERM, partial(signal_on_exit, service_id=service_id))
+    signal.signal(signal.SIGINT, partial(signal_on_exit,
+                                         service_id=service_id))
+    signal.signal(signal.SIGTERM, partial(signal_on_exit,
+                                          service_id=service_id))
 
     # server start
     logger.info(f"server userop start at {args.ip}:{port}")
     server.start()
 
     # register service
-    logger.info(f"register userop service to consul")
-    register = consul.ConsulRegister(settings.CONSUL_HOST, settings.CONSUL_PORT)
+    logger.info("register userop service to consul")
+    register = consul.ConsulRegister(settings.CONSUL_HOST,
+                                     settings.CONSUL_PORT)
     if not register.register(
         name=settings.SERVICE_NAME,
         id=service_id,
@@ -92,12 +98,13 @@ def serve():
         tags=settings.SERVICE_TAGS,
         check=None,
     ):
-        logger.error(f"register userop service to consul failed")
+        logger.error("register userop service to consul failed")
         sys.exit(0)
 
     server.wait_for_termination()
 
 
 if __name__ == "__main__":
-    settings.client.add_config_watcher(settings.NACOS["DataId"], settings.NACOS["Group"], settings.update_cfg)
+    settings.client.add_config_watcher(
+        settings.NACOS["DataId"], settings.NACOS["Group"], settings.update_cfg)
     serve()

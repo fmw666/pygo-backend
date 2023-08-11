@@ -11,7 +11,8 @@ class ReconnectMysqlDatabase(ReconnectMixin, PooledMySQLDatabase):
     pass
 
 
-config_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "config.json")
+config_path = os.path.join(os.path.dirname(
+    os.path.dirname(os.path.abspath(__file__))), "config.json")
 config_json_data = json.loads(open(config_path, "r", encoding="utf-8").read())
 
 NACOS = {
@@ -34,10 +35,12 @@ data = client.get_config(NACOS["DataId"], NACOS["Group"])
 data = json.loads(data)
 logger.info(f"get config from nacos: {data}")
 
+
 def update_cfg(args):
     global data
     data = json.loads(args)
     logger.info(f"update config from nacos: {data}")
+
 
 DB = ReconnectMysqlDatabase(
     data["mysql"]["db"],

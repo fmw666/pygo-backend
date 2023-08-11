@@ -19,18 +19,18 @@ class AddressServicer(address_pb2_grpc.AddressServicer):
         rsp.total = addresses.count()
         for addr in addresses:
             rsp.data.append(address_pb2.AddressResponse(
-                id = addr.id,
-                userId = addr.user,
-                province = addr.province,
-                city = addr.city,
-                district = addr.district,
-                address = addr.address,
-                signerName = addr.signer_name,
-                signerMobile = addr.signer_mobile,
+                id=addr.id,
+                userId=addr.user,
+                province=addr.province,
+                city=addr.city,
+                district=addr.district,
+                address=addr.address,
+                signerName=addr.signer_name,
+                signerMobile=addr.signer_mobile,
             ))
-        
+
         return rsp
-    
+
     @logger.catch
     def CreateAddress(self, request: address_pb2.AddressRequest, context):
         address = Address(
@@ -54,7 +54,7 @@ class AddressServicer(address_pb2_grpc.AddressServicer):
             signerName=address.signer_name,
             signerMobile=address.signer_mobile
         )
-    
+
     @logger.catch
     def UpdateAddress(self, request: address_pb2.AddressRequest, context):
         try:
@@ -77,7 +77,7 @@ class AddressServicer(address_pb2_grpc.AddressServicer):
             context.set_code(grpc.StatusCode.NOT_FOUND)
             context.set_details("Address with id %s not found!" % request.id)
             return empty_pb2.Empty()
-    
+
     @logger.catch
     def DeleteAddress(self, request: address_pb2.AddressRequest, context):
         try:

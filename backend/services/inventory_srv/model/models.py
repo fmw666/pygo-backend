@@ -1,10 +1,7 @@
-import os
-import sys
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-
 from datetime import datetime
 
-from peewee import *
+from peewee import (Model, DateTimeField, BooleanField, IntegerField,
+                    CharField)
 
 from inventory_srv.settings import settings
 
@@ -18,7 +15,7 @@ class BaseModel(Model):
         if self._pk is not None:
             self.update_time = datetime.now()
         return super().save(*args, **kwargs)
-    
+
     @classmethod
     def delete(cls, permanently: bool = False):
         """
@@ -29,7 +26,8 @@ class BaseModel(Model):
         else:
             return super().update(is_deleted=True)
 
-    def delete_instance(self, permanently: bool = False, recursive: bool = ..., delete_nullable: bool = ...):
+    def delete_instance(self, permanently: bool = False, recursive: bool = ...,
+                        delete_nullable: bool = ...):
         """
         permanently: True: 真实删除; False: 逻辑删除
         """
@@ -38,10 +36,10 @@ class BaseModel(Model):
         else:
             self.is_deleted = True
             return self.save()
-    
+
     @classmethod
     def select(cls, *fields):
-        return super().select(*fields).where(cls.is_deleted == False)
+        return super().select(*fields).where(is_deleted=False)
 
     class Meta:
         database = settings.DB
@@ -66,7 +64,8 @@ class InventoryHistory(BaseModel):
     """
     order_sn = CharField(max_length=64, unique=True, verbose_name="订单号")
     order_inv_detail = CharField(max_length=200, verbose_name="订单库存详情")
-    status = IntegerField(choices=((1, "已扣减"), (2, "已归还")), default=1, verbose_name="状态")
+    status = IntegerField(choices=((1, "已扣减"), (2, "已归还")), default=1,
+                          verbose_name="状态")
 
 
 if __name__ == "__main__":
@@ -76,7 +75,7 @@ if __name__ == "__main__":
     for i in range(421, 848):
         inv = Inventory.select().where(Inventory.goods == i).first()
         if inv:
-            inv.stocks = 100    
+            inv.stocks = 100
             inv.save()
         else:
             inv = Inventory(goods=i, stocks=100)

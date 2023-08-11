@@ -1,6 +1,5 @@
 """Internal utilities for gRPC OpenTracing."""
 
-import collections
 from common import grpc_opentracing
 
 
@@ -63,4 +62,3 @@ def log_or_wrap_request_or_iterator(span, is_client_stream,
     else:
         span.log_kv({'request': request_or_iterator})
         return request_or_iterator
-    

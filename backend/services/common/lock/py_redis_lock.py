@@ -116,7 +116,8 @@ class Lock(object):
     reset_script = None
     reset_all_script = None
 
-    def __init__(self, redis_client, name, expire=None, id=None, auto_renewal=False, strict=True, signal_expire=1000):
+    def __init__(self, redis_client, name, expire=None, id=None,
+                 auto_renewal=False, strict=True, signal_expire=1000):
         """
         :param redis_client:
             An instance of :class:`~StrictRedis`.
@@ -128,20 +129,22 @@ class Lock(object):
         :param id:
             The ID (redis value) the lock should have. A random value is
             generated when left at the default.
-            Note that if you specify this then the lock is marked as "held". Acquires
-            won't be possible.
+            Note that if you specify this then the lock is marked as "held".
+            Acquires won't be possible.
         :param auto_renewal:
-            If set to ``True``, Lock will automatically renew the lock so that it
-            doesn't expire for as long as the lock is held (acquire() called
+            If set to ``True``, Lock will automatically renew the lock so that
+            it doesn't expire for as long as the lock is held (acquire() called
             or running in a context manager).
             Implementation note: Renewal will happen using a daemon thread with
-            an interval of ``expire*2/3``. If wishing to use a different renewal
-            time, subclass Lock, call ``super().__init__()`` then set
+            an interval of ``expire*2/3``. If wishing to use a different
+            renewal time, subclass Lock, call ``super().__init__()`` then set
             ``self._lock_renewal_interval`` to your desired interval.
         :param strict:
-            If set ``True`` then the ``redis_client`` needs to be an instance of ``redis.StrictRedis``.
+            If set ``True`` then the ``redis_client`` needs to be an instance
+            of ``redis.StrictRedis``.
         :param signal_expire:
-            Advanced option to override signal list expiration in milliseconds. Increase it for very slow clients. Default: ``1000``.
+            Advanced option to override signal list expiration in milliseconds.
+            Increase it for very slow clients. Default: ``1000``.
         """
         if strict and not isinstance(redis_client, StrictRedis):
             raise ValueError("redis_client must be instance of StrictRedis. "
@@ -170,7 +173,8 @@ class Lock(object):
         elif isinstance(id, text_type):
             self._id = id
         else:
-            raise TypeError("Incorrect type for `id`. Must be bytes/str not %s." % type(id))
+            raise TypeError("Incorrect type for `id`. " +
+                            "Must be bytes/str not %s." % type(id))
         self._name = 'lock:' + name
         self._signal = 'lock-signal:' + name
         self._lock_renewal_interval = (float(expire) * 2 / 3
@@ -188,7 +192,9 @@ class Lock(object):
             cls.unlock_script = redis_client.register_script(UNLOCK_SCRIPT)
             cls.extend_script = redis_client.register_script(EXTEND_SCRIPT)
             cls.reset_script = redis_client.register_script(RESET_SCRIPT)
-            cls.reset_all_script = redis_client.register_script(RESET_ALL_SCRIPT)
+            cls.reset_all_script = (
+                redis_client.register_script(RESET_ALL_SCRIPT)
+            )
 
     @property
     def _held(self):
@@ -198,7 +204,8 @@ class Lock(object):
         """
         Forcibly deletes the lock. Use this with care.
         """
-        self.reset_script(client=self._client, keys=(self._name, self._signal), args=(self.id, self._signal_expire))
+        self.reset_script(client=self._client, keys=(self._name, self._signal),
+                          args=(self.id, self._signal_expire))
 
     @property
     def id(self):
@@ -230,30 +237,38 @@ class Lock(object):
         if timeout:
             timeout = int(timeout)
             if timeout < 0:
-                raise InvalidTimeout("Timeout (%d) cannot be less than or equal to 0" % timeout)
-            
-            if self._expire and not self._lock_renewal_interval and timeout > self._expire:
-                raise TimeoutTooLarge("Timeout (%d) cannot be greater than expire (%d)" % (timeout, self._expire))
-        
+                raise InvalidTimeout("Timeout (%d) cannot be less " % timeout +
+                                     "than or equal to 0")
+
+            if (self._expire and
+               not self._lock_renewal_interval and timeout > self._expire):
+                raise TimeoutTooLarge("Timeout (%d) cannot be " % timeout +
+                                      "greater than " +
+                                      "expire (%d)" % self._expire)
+
         busy = True
         blpop_timeout = timeout or self._expire or 0
         timed_out = False
         while busy:
-            busy = not self._client.set(self._name, self._id, nx=True, ex=self._expire)
+            busy = not self._client.set(self._name, self._id, nx=True,
+                                        ex=self._expire)
             if busy:
                 if timed_out:
                     return False
                 elif blocking:
-                    timed_out = not self._client.blpop(self._signal, blpop_timeout) and timeout
+                    timed_out = (
+                        not self._client.blpop(self._signal, blpop_timeout) and
+                        timeout
+                    )
                 else:
                     logger.warning("Failed to get %r.", self._name)
                     return False
-                
+
         logger.info("Got lock for %r.", self._name)
         if self._lock_renewal_interval is not None:
             self._start_lock_renewer()
         return True
-    
+
     def extend(self, expire=True):
         """Extends expiration time of the lock.
         :param expire:
@@ -272,14 +287,19 @@ class Lock(object):
                 "argument to extend() method or at initialization time."
             )
 
-        error = self.extend_script(client=self._client, keys=(self._name, self._signal), args=(self._id, expire))
+        error = self.extend_script(client=self._client,
+                                   keys=(self._name, self._signal),
+                                   args=(self._id, expire))
         if error == 1:
-            raise NotAcquired("Lock %s is not acquired or it already expired." % self._name)
+            raise NotAcquired("Lock %s is not acquired or " % self._name +
+                              "it already expired.")
         elif error == 2:
-            raise NotExpirable("Lock %s has no assigned expiration time" % self._name)
+            raise NotExpirable("Lock %s has no assigned " % self._name +
+                               "expiration time")
         elif error:
-            raise RuntimeError("Unsupported error code %s from EXTEND script" % error)
-    
+            raise RuntimeError("Unsupported error code %s " % error +
+                               "from EXTEND script")
+
     @staticmethod
     def _lock_renewer(lockref, interval, stop):
         """
@@ -296,7 +316,8 @@ class Lock(object):
                 break
             lock.extend(expire=lock._expire)
             del lock
-        loggers["refresh.thread.exit"].debug("Exit requested, stopping lock refreshing")
+        loggers["refresh.thread.exit"].debug("Exit requested, stopping " +
+                                             "lock refreshing")
 
     def _start_lock_renewer(self):
         """
@@ -325,9 +346,11 @@ class Lock(object):
         Stop the lock renewer.
         This signals the renewal thread and waits for its exit.
         """
-        if self._lock_renewal_thread is None or not self._lock_renewal_thread.is_alive():
+        if (self._lock_renewal_thread is None or
+           not self._lock_renewal_thread.is_alive()):
             return
-        loggers["refresh.shutdown"].debug("Signalling the lock refresher to stop")
+        loggers["refresh.shutdown"].debug("Signalling the lock " +
+                                          "refresher to stop")
         self._lock_renewal_stop.set()
         self._lock_renewal_thread.join()
         self._lock_renewal_thread = None
@@ -344,24 +367,29 @@ class Lock(object):
     def release(self):
         """Releases the lock, that was acquired with the same object.
         .. note::
-            If you want to release a lock that you acquired in a different place you have two choices:
+            If you want to release a lock that you acquired in a different
+            place you have two choices:
             * Use ``Lock("name", id=id_from_other_place).release()``
             * Use ``Lock("name").reset()``
         """
         if self._lock_renewal_thread is not None:
             self._stop_lock_renewer()
         loggers["release"].debug("Releasing %r.", self._name)
-        error = self.unlock_script(client=self._client, keys=(self._name, self._signal), args=(self._id, self._signal_expire))
+        error = self.unlock_script(client=self._client,
+                                   keys=(self._name, self._signal),
+                                   args=(self._id, self._signal_expire))
         if error == 1:
-            raise NotAcquired("Lock %s is not acquired or it already expired." % self._name)
+            raise NotAcquired("Lock %s is not acquired " % self._name +
+                              "or it already expired.")
         elif error:
-            raise RuntimeError("Unsupported error code %s from EXTEND script." % error)
+            raise RuntimeError("Unsupported error code " +
+                               "%s from EXTEND script." % error)
 
     def locked(self):
         """
         Return true if the lock is acquired.
-        Checks that lock with same name already exists. This method returns true, even if
-        lock have another id.
+        Checks that lock with same name already exists. This method
+        returns true, even if lock have another id.
         """
         return self._client.exists(self._name) == 1
 
@@ -371,7 +399,8 @@ reset_all_script = None
 
 def reset_all(redis_client):
     """
-    Forcibly deletes all locks if its remains (like a crash reason). Use this with care.
+    Forcibly deletes all locks if its remains (like a crash reason).
+    Use this with care.
     :param redis_client:
         An instance of :class:`~StrictRedis`.
     """

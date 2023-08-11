@@ -11,7 +11,7 @@ class GoodsServicer(goods_pb2_grpc.GoodsServicer):
 
     def convert_model_to_message(self, goods):
         info_rsp = goods_pb2.GoodsInfoResponse()
-        
+
         info_rsp.id = goods.id
         info_rsp.categoryId = goods.category_id
         info_rsp.name = goods.name
@@ -37,7 +37,7 @@ class GoodsServicer(goods_pb2_grpc.GoodsServicer):
         info_rsp.brand.logo = goods.brand.logo
 
         return info_rsp
-    
+
     @logger.catch
     def GoodsList(self, request: goods_pb2.GoodsFilterRequest, context):
         """
@@ -49,37 +49,42 @@ class GoodsServicer(goods_pb2_grpc.GoodsServicer):
         if request.keyWords:
             goods = goods.filter(Goods.name.contains(request.keyWords))
         if request.isHot:
-            goods = goods.filter(Goods.is_hot==True)
+            goods = goods.filter(is_hot=True)
         if request.isNew:
-            goods = goods.filter(Goods.is_new==True)
+            goods = goods.filter(is_new=True)
         if request.priceMin:
-            goods = goods.filter(Goods.shop_price>=request.priceMin)
+            goods = goods.filter(Goods.shop_price >= request.priceMin)
         if request.priceMax:
-            goods = goods.filter(Goods.shop_price<=request.priceMax)
+            goods = goods.filter(Goods.shop_price <= request.priceMax)
         if request.brand:
-            goods = goods.filter(Goods.brand_id==request.brand)
+            goods = goods.filter(Goods.brand_id == request.brand)
         if request.topCategory:
             try:
                 ids = []
-                category = Category.get(Category.id==request.topCategory)
+                category = Category.get(Category.id == request.topCategory)
                 level = category.level
 
                 if level == 1:
                     c2 = Category.alias()
-                    categorys = Category.select().where(Category.parent_category_id.in_(
-                        c2.select(c2.id).where(c2.parent_category_id==request.topCategory)
-                    ))
+                    categorys = Category.select().where(
+                        Category.parent_category_id.in_(
+                            c2.select(c2.id).where(
+                                c2.parent_category_id == request.topCategory
+                            )
+                        )
+                    )
                     for c in categorys:
                         ids.append(c.id)
                 elif level == 2:
-                    categorys = Category.select().where(Category.parent_category_id==request.topCategory)
+                    categorys = Category.select().where(
+                        Category.parent_category_id == request.topCategory)
                 elif level == 3:
                     ids.append(request.topCategory)
 
                 goods = goods.where(Goods.category_id.in_(ids))
-            except Exception as e:
+            except Exception:
                 pass
-        
+
         # page
         start = 0
         per_page_nums = 10
@@ -87,12 +92,12 @@ class GoodsServicer(goods_pb2_grpc.GoodsServicer):
             per_page_nums = request.pagePerNums
         if request.pages:
             start = (request.pages - 1) * per_page_nums
-        
+
         goods = goods.limit(per_page_nums).offset(start)
         rsp.total = goods.count()
         for good in goods:
             rsp.data.append(self.convert_model_to_message(good))
-        
+
         return rsp
 
     @logger.catch
@@ -115,9 +120,9 @@ class GoodsServicer(goods_pb2_grpc.GoodsServicer):
         删除商品
         """
         try:
-            good = Goods.get(Goods.id==request.id)
+            good = Goods.get(Goods.id == request.id)
             good.delete_instance()
-        except DoesNotExist as e:
+        except DoesNotExist:
             context.set_code(grpc.StatusCode.NOT_FOUND)
             context.set_details("商品不存在")
             return empty_pb2.Empty()
@@ -132,11 +137,11 @@ class GoodsServicer(goods_pb2_grpc.GoodsServicer):
         获取商品详情
         """
         try:
-            good = Goods.get(Goods.id==request.id)
+            good = Goods.get(Goods.id == request.id)
             good.click_num += 1
             good.save()
             return self.convert_model_to_message(good)
-        except DoesNotExist as e:
+        except DoesNotExist:
             context.set_code(grpc.StatusCode.NOT_FOUND)
             context.set_details("商品不存在")
             return goods_pb2.GoodsInfoResponse()
@@ -147,19 +152,19 @@ class GoodsServicer(goods_pb2_grpc.GoodsServicer):
         创建商品
         """
         try:
-            category = Category.get(Category.id==request.categoryId)
-        except DoesNotExist as e:
+            category = Category.get(Category.id == request.categoryId)
+        except DoesNotExist:
             context.set_code(grpc.StatusCode.NOT_FOUND)
             context.set_details("商品分类不存在")
             return goods_pb2.GoodsInfoResponse()
-        
+
         try:
-            brand = Brands.get(Brands.id==request.brandId)
-        except DoesNotExist as e:
+            brand = Brands.get(Brands.id == request.brandId)
+        except DoesNotExist:
             context.set_code(grpc.StatusCode.NOT_FOUND)
             context.set_details("品牌不存在")
             return goods_pb2.GoodsInfoResponse()
-        
+
         goods = Goods()
         goods.category = category
         goods.brand = brand
@@ -180,28 +185,28 @@ class GoodsServicer(goods_pb2_grpc.GoodsServicer):
         # TODO 此处完善库存的设置 - 分布式事务
 
         return self.convert_model_to_message(goods)
-    
+
     @logger.catch
     def UpdateGoods(self, request: goods_pb2.GoodInfoRequest, context):
         """
         更新商品
         """
         try:
-            category = Category.get(Category.id==request.categoryId)
-        except DoesNotExist as e:
+            category = Category.get(Category.id == request.categoryId)
+        except DoesNotExist:
             context.set_code(grpc.StatusCode.NOT_FOUND)
             context.set_details("商品分类不存在")
             return goods_pb2.GoodsInfoResponse()
-        
+
         try:
-            brand = Brands.get(Brands.id==request.brandId)
-        except DoesNotExist as e:
+            brand = Brands.get(Brands.id == request.brandId)
+        except DoesNotExist:
             context.set_code(grpc.StatusCode.NOT_FOUND)
             context.set_details("品牌不存在")
             return goods_pb2.GoodsInfoResponse()
-        
+
         try:
-            goods = Goods.get(Goods.id==request.id)
+            goods = Goods.get(Goods.id == request.id)
             goods.category = category
             goods.brand = brand
             goods.name = request.name
@@ -220,7 +225,7 @@ class GoodsServicer(goods_pb2_grpc.GoodsServicer):
 
             # TODO 此处完善库存的设置 - 分布式事务
             return self.convert_model_to_message(goods)
-        except DoesNotExist as e:
+        except DoesNotExist:
             context.set_code(grpc.StatusCode.NOT_FOUND)
             context.set_details("商品不存在")
             return goods_pb2.GoodsInfoResponse()

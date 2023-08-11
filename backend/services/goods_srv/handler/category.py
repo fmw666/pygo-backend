@@ -61,12 +61,12 @@ class CategoryServicer(category_pb2_grpc.CategoryServicer):
                 level2.append(self.category_model_to_dict(category))
             elif category.level == 3:
                 level3.append(self.category_model_to_dict(category))
-        
+
         for l3 in level3:
             for l2 in level2:
                 if l3["parent"] == l2["id"]:
                     l2.setdefault("sub_category", []).append(l3)
-        
+
         for l2 in level2:
             for l1 in level1:
                 if l2["parent"] == l1["id"]:
@@ -76,24 +76,28 @@ class CategoryServicer(category_pb2_grpc.CategoryServicer):
         return category_list_rsp
 
     @logger.catch
-    def GetSubCategory(self, request: category_pb2.CategoryListRequest, context):
+    def GetSubCategory(self, request: category_pb2.CategoryListRequest,
+                       context):
         category_list_rsp = category_pb2.SubCategoryListResponse()
 
         try:
             category_info = Category.get(Category.id == request.id)
-            
+
             category_list_rsp.info.id = category_info.id
             category_list_rsp.info.name = category_info.name
             category_list_rsp.info.level = category_info.level
             category_list_rsp.info.isTab = category_info.is_tab
             if category_info.parent_category:
-                category_list_rsp.info.parentCategory = category_info.parent_category_id
+                category_list_rsp.info.parentCategory = (
+                    category_info.parent_category_id
+                )
         except DoesNotExist:
             context.set_code(grpc.StatusCode.NOT_FOUND)
             context.set_details("分类不存在")
             return category_list_rsp
-        
-        categorys = Category.select().where(Category.parent_category == request.id)
+
+        categorys = Category.select().where(
+            Category.parent_category == request.id)
         category_list_rsp.total = categorys.count()
         for category in categorys:
             category_rsp = category_pb2.CategoryInfoResponse()
@@ -106,11 +110,12 @@ class CategoryServicer(category_pb2_grpc.CategoryServicer):
             category_rsp.isTab = category.is_tab
 
             category_list_rsp.subCategorys.append(category_rsp)
-        
+
         return category_list_rsp
 
     @logger.catch
-    def CreateCategory(self, request: category_pb2.CategoryInfoRequest, context):
+    def CreateCategory(self, request: category_pb2.CategoryInfoRequest,
+                       context):
         try:
             category = Category()
             category.name = request.name
@@ -131,11 +136,12 @@ class CategoryServicer(category_pb2_grpc.CategoryServicer):
             context.set_code(grpc.StatusCode.INTERNAL)
             context.set_details("创建分类失败" + str(e))
             return category_pb2.CategoryInfoResponse()
-        
+
         return category_rsp
-    
+
     @logger.catch
-    def DeleteCategory(self, request: category_pb2.DeleteCategoryRequest, context):
+    def DeleteCategory(self, request: category_pb2.DeleteCategoryRequest,
+                       context):
         try:
             category = Category.get(Category.id == request.id)
             category.delete_instance()
@@ -147,9 +153,10 @@ class CategoryServicer(category_pb2_grpc.CategoryServicer):
             context.set_code(grpc.StatusCode.NOT_FOUND)
             context.set_details("分类不存在")
             return empty_pb2.Empty()
-    
+
     @logger.catch
-    def UpdateCategory(self, request: category_pb2.CategoryInfoRequest, context):
+    def UpdateCategory(self, request: category_pb2.CategoryInfoRequest,
+                       context):
         try:
             category = Category.get(Category.id == request.id)
             if request.name:
@@ -160,11 +167,10 @@ class CategoryServicer(category_pb2_grpc.CategoryServicer):
                 category.level = request.level
             if request.isTab:
                 category.is_tab = request.isTab
-            
+
             category.save()
             return empty_pb2.Empty()
         except DoesNotExist:
             context.set_code(grpc.StatusCode.NOT_FOUND)
             context.set_details("分类不存在")
             return empty_pb2.Empty()
-    

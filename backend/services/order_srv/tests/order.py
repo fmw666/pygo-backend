@@ -1,9 +1,3 @@
-import os
-import sys
-# append ../ to sys.path
-sys.path.append(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "../"))
-
-import time
 
 import consul
 import grpc
@@ -17,7 +11,7 @@ class OrderTest:
         # try to connect to the server
         c = consul.Consul(host=settings.CONSUL_HOST, port=settings.CONSUL_PORT)
         services = c.agent.services()
-        
+
         ip = ""
         port = ""
         for _, v in services.items():
@@ -25,13 +19,13 @@ class OrderTest:
                 ip = v["Address"]
                 port = v["Port"]
                 break
-        
+
         if ip == "" or port == "":
             raise Exception("no service available")
-        
+
         channel = grpc.insecure_channel(f"{ip}:{port}")
         self.stub = order_pb2_grpc.OrderStub(channel)
-    
+
     def cart_item_list(self):
         rsp = self.stub.CartItemList(
             order_pb2.UserInfoRequest(id=1)
@@ -43,7 +37,7 @@ class OrderTest:
             order_pb2.CartItemRequest(goodsId=422, userId=1, nums=3)
         )
         print(rsp)
-    
+
     def create_order(self):
         rsp = self.stub.CreateOrder(
             order_pb2.OrderRequest(
@@ -55,20 +49,21 @@ class OrderTest:
             )
         )
         print(rsp)
-    
+
     def order_list(self):
         rsp = self.stub.OrderList(order_pb2.OrderFilterRequest(userId=1))
         print(rsp)
-    
+
     def order_detail(self):
         rsp = self.stub.OrderDetail(order_pb2.OrderRequest(userId=4, id=1))
         print(rsp)
-    
+
     def update_order_status(self):
         self.stub.UpdateOrderStatus(
-            order_pb2.OrderStatusRequest(orderSn="20230722143834211", status="TRADE_SUCCESS")
+            order_pb2.OrderStatusRequest(orderSn="20230722143834211",
+                                         status="TRADE_SUCCESS")
         )
-    
+
 
 if __name__ == "__main__":
     ot = OrderTest()

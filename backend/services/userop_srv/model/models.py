@@ -1,13 +1,9 @@
-import os
-import sys
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-
 from datetime import datetime
 
 from userop_srv.settings import settings
-from common.database.init_db import DBInit
 
-from peewee import *
+from peewee import (Model, DateTimeField, BooleanField, IntegerField,
+                    CharField, TextField, CompositeKey)
 
 
 class BaseModel(Model):
@@ -19,7 +15,7 @@ class BaseModel(Model):
         if self._pk is not None:
             self.update_time = datetime.now()
         return super().save(*args, **kwargs)
-    
+
     @classmethod
     def delete(cls, permanently: bool = False):
         """
@@ -30,7 +26,8 @@ class BaseModel(Model):
         else:
             return super().update(is_deleted=True)
 
-    def delete_instance(self, permanently: bool = False, recursive: bool = ..., delete_nullable: bool = ...):
+    def delete_instance(self, permanently: bool = False,
+                        recursive: bool = ..., delete_nullable: bool = ...):
         """
         permanently: True: 真实删除; False: 逻辑删除
         """
@@ -39,10 +36,10 @@ class BaseModel(Model):
         else:
             self.is_deleted = True
             return self.save()
-    
+
     @classmethod
     def select(cls, *fields):
-        return super().select(*fields).where(cls.is_deleted == False)
+        return super().select(*fields).where(is_deleted=False)
 
     class Meta:
         database = settings.DB
@@ -61,11 +58,14 @@ class LeaveMessage(BaseModel):
         (6, "其他"),
     )
     user = IntegerField(verbose_name="用户ID")
-    message_type = IntegerField(choices=MESSAGE_CHOICES, default=1, verbose_name="留言类型",
-                                help_text=u"留言类型：1(留言),2(投诉),3(询问),4(售后),5(求购),6(其他)")
+    message_type = IntegerField(choices=MESSAGE_CHOICES, default=1,
+                                verbose_name="留言类型",
+                                help_text=(u"留言类型：1(留言),2(投诉),"
+                                           u"3(询问),4(售后),5(求购),6(其他)"))
     subject = CharField(max_length=100, default="", verbose_name="主题")
     message = TextField(default="", verbose_name="留言内容", help_text="留言内容")
-    file = CharField(max_length=200, default="", verbose_name="上传的文件", help_text="上传的文件")
+    file = CharField(max_length=200, default="", verbose_name="上传的文件",
+                     help_text="上传的文件")
 
 
 class Address(BaseModel):

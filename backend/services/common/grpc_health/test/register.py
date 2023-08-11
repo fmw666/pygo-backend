@@ -5,7 +5,16 @@ headers = {
     "Content-Type": "application/json"
 }
 
-def register_http(name, id, address, port):
+
+def register_http(name: str, id: str, address: str, port: int) -> None:
+    """
+    注册 http 服务到 consul 中.
+    :param name: 服务名称
+    :param id: 服务 id
+    :param address: 服务地址
+    :param port: 服务端口
+    :return: None
+    """
     url = "http://127.0.0.1:8500/v1/agent/service/register"
     rsp = requests.put(url, headers=headers, json={
         "NAME": name,
@@ -27,7 +36,15 @@ def register_http(name, id, address, port):
         print("register service success")
 
 
-def register_grpc(name, id, address, port):
+def register_grpc(name: str, id: str, address: str, port: int) -> None:
+    """
+    注册 grpc 服务到 consul 中.
+    :param name: 服务名称
+    :param id: 服务 id
+    :param address: 服务地址
+    :param port: 服务端口
+    :return: None
+    """
     url = "http://127.0.0.1:8500/v1/agent/service/register"
     rsp = requests.put(url, headers=headers, json={
         "NAME": name,
@@ -50,7 +67,12 @@ def register_grpc(name, id, address, port):
         print("register service success")
 
 
-def deregister(service_id):
+def deregister(service_id: str) -> None:
+    """
+    从 consul 中注销服务.
+    :param service_id: 服务 id
+    :return: None
+    """
     url = f"http://127.0.0.1:8500/v1/agent/service/deregister/{service_id}"
     rsp = requests.put(url, headers=headers)
     if rsp.status_code != 200:

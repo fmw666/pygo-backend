@@ -1,6 +1,4 @@
-import os
 import sys
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import argparse
 import signal
@@ -22,7 +20,8 @@ from order_srv.settings import settings
 
 def signal_on_exit(signo, frame, service_id=None):
     logger.info(f"deregister service {service_id} from consul...")
-    register = consul.ConsulRegister(settings.CONSUL_HOST, settings.CONSUL_PORT)
+    register = consul.ConsulRegister(settings.CONSUL_HOST,
+                                     settings.CONSUL_PORT)
     register.deregister(service_id)
     logger.info(f"deregister service {service_id} from consul success")
     sys.exit(0)
@@ -59,28 +58,33 @@ def serve():
     else:
         port = args.port
 
-    logger.add("logs/order_srv_{time}.log", rotation="500 MB", encoding="utf-8")
+    logger.add("logs/order_srv_{time}.log", rotation="500 MB",
+               encoding="utf-8")
 
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     # register order service
     order_pb2_grpc.add_OrderServicer_to_server(OrderServicer(), server)
     # register health service
-    health_pb2_grpc.add_HealthServicer_to_server(health.HealthServicer(), server)
+    health_pb2_grpc.add_HealthServicer_to_server(health.HealthServicer(),
+                                                 server)
     server.add_insecure_port(f"{args.ip}:{port}")
 
     service_id = str(uuid.uuid1())
 
     # main process listen to SIGINT and SIGTERM
-    signal.signal(signal.SIGINT, partial(signal_on_exit, service_id=service_id))
-    signal.signal(signal.SIGTERM, partial(signal_on_exit, service_id=service_id))
+    signal.signal(signal.SIGINT, partial(signal_on_exit,
+                                         service_id=service_id))
+    signal.signal(signal.SIGTERM, partial(signal_on_exit,
+                                          service_id=service_id))
 
     # server start
     logger.info(f"server order start at {args.ip}:{port}")
     server.start()
 
     # register service
-    logger.info(f"register order service to consul")
-    register = consul.ConsulRegister(settings.CONSUL_HOST, settings.CONSUL_PORT)
+    logger.info("register order service to consul")
+    register = consul.ConsulRegister(settings.CONSUL_HOST,
+                                     settings.CONSUL_PORT)
     if not register.register(
         name=settings.SERVICE_NAME,
         id=service_id,
@@ -89,12 +93,13 @@ def serve():
         tags=settings.SERVICE_TAGS,
         check=None,
     ):
-        logger.error(f"register order service to consul failed")
+        logger.error("register order service to consul failed")
         sys.exit(0)
 
     # listen rocketmq
     consumer = PushConsumer("pygo_order")
-    consumer.set_name_server_address(f"{settings.ROCKETMQ_HOST}:{settings.ROCKETMQ_PORT}")
+    consumer.set_name_server_address(
+        f"{settings.ROCKETMQ_HOST}:{settings.ROCKETMQ_PORT}")
     consumer.subscribe("order_timeout", order_timeout)
     consumer.start()
 
@@ -103,5 +108,6 @@ def serve():
 
 
 if __name__ == "__main__":
-    settings.client.add_config_watcher(settings.NACOS["DataId"], settings.NACOS["Group"], settings.update_cfg)
+    settings.client.add_config_watcher(
+        settings.NACOS["DataId"], settings.NACOS["Group"], settings.update_cfg)
     serve()

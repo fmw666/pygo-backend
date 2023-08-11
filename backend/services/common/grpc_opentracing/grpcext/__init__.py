@@ -4,10 +4,10 @@ import six
 
 
 class UnaryClientInfo(six.with_metaclass(abc.ABCMeta)):
-    """Consists of various information about a unary RPC on the invocation-side.
+    """Consists of various information about a unary RPC on the invocation-side
 
   Attributes:
-    full_method: A string of the full RPC method, i.e., /package.service/method.
+    full_method: A string of the full RPC method, i.e., /package.service/method
     timeout: The length of time in seconds to wait for the computation to
       terminate or be cancelled, or None if this method should block until
       the computation is terminated or is cancelled no matter how long that
@@ -16,10 +16,11 @@ class UnaryClientInfo(six.with_metaclass(abc.ABCMeta)):
 
 
 class StreamClientInfo(six.with_metaclass(abc.ABCMeta)):
-    """Consists of various information about a stream RPC on the invocation-side.
+    """Consists of various information about a stream RPC on the
+      invocation-side.
 
   Attributes:
-    full_method: A string of the full RPC method, i.e., /package.service/method.
+    full_method: A string of the full RPC method, i.e., /package.service/method
     is_client_stream: Indicates whether the RPC is client-streaming.
     is_server_stream: Indicates whether the RPC is server-streaming.
     timeout: The length of time in seconds to wait for the computation to
@@ -99,7 +100,7 @@ class UnaryServerInfo(six.with_metaclass(abc.ABCMeta)):
     """Consists of various information about a unary RPC on the service-side.
 
   Attributes:
-    full_method: A string of the full RPC method, i.e., /package.service/method.
+    full_method: A string of the full RPC method, i.e., /package.service/method
   """
 
 
@@ -107,7 +108,7 @@ class StreamServerInfo(six.with_metaclass(abc.ABCMeta)):
     """Consists of various information about a stream RPC on the service-side.
 
   Attributes:
-    full_method: A string of the full RPC method, i.e., /package.service/method.
+    full_method: A string of the full RPC method, i.e., /package.service/method
     is_client_stream: Indicates whether the RPC is client-streaming.
     is_server_stream: Indicates whether the RPC is server-streaming.
   """
@@ -176,8 +177,6 @@ def intercept_server(server, *interceptors):
     from common.grpc_opentracing.grpcext import _interceptor
     return _interceptor.intercept_server(server, *interceptors)
 
-
-###################################  __all__  #################################
 
 __all__ = ('UnaryClientInterceptor', 'StreamClientInfo',
            'StreamClientInterceptor', 'UnaryServerInfo', 'StreamServerInfo',

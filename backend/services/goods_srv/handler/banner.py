@@ -25,11 +25,11 @@ class BannerServicer(banner_pb2_grpc.BannerServicer):
             banner_rsp.image = banner.image
             banner_rsp.index = banner.index
             banner_rsp.url = banner.url
-            
+
             rsp.data.append(banner_rsp)
-        
+
         return rsp
-    
+
     @logger.catch
     def CreateBanner(self, request: banner_pb2.BannerRequest, context):
         """
@@ -49,7 +49,7 @@ class BannerServicer(banner_pb2_grpc.BannerServicer):
             index=banner.index,
             url=banner.url,
         )
-    
+
     @logger.catch
     def DeleteBanner(self, request: banner_pb2.BannerRequest, context):
         """
@@ -61,7 +61,7 @@ class BannerServicer(banner_pb2_grpc.BannerServicer):
         except DoesNotExist:
             context.set_code(grpc.StatusCode.NOT_FOUND)
             context.set_details("banner not found")
-            
+
         return empty_pb2.Empty()
 
     @logger.catch

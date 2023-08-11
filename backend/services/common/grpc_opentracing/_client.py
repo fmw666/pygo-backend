@@ -2,14 +2,14 @@
 
 import sys
 import logging
-import time
 
 from six import iteritems
 
 import grpc
 from common.grpc_opentracing import grpcext
-from common.grpc_opentracing._utilities import get_method_type, get_deadline_millis,\
+from common.grpc_opentracing._utilities import (
     log_or_wrap_request_or_iterator, RpcInfo
+)
 import opentracing
 from opentracing.ext import tags as ot_tags
 
@@ -99,7 +99,8 @@ class OpenTracingClientInterceptor(grpcext.UnaryClientInterceptor,
             operation_name=method, child_of=active_span_context, tags=tags)
 
     def _trace_result(self, guarded_span, rpc_info, result):
-        # If the RPC is called asynchronously, release the guard and add a callback
+        # If the RPC is called asynchronously, release the guard
+        # and add a callback
         # so that the span can be finished once the future is done.
         if isinstance(result, grpc.Future):
             result.add_done_callback(
@@ -136,7 +137,7 @@ class OpenTracingClientInterceptor(grpcext.UnaryClientInterceptor,
                 guarded_span.span.log_kv({'request': request})
             try:
                 result = invoker(request, metadata)
-            except:
+            except Exception:
                 e = sys.exc_info()[0]
                 guarded_span.span.set_tag('error', True)
                 guarded_span.span.log_kv({'event': 'error', 'error.object': e})
@@ -147,8 +148,8 @@ class OpenTracingClientInterceptor(grpcext.UnaryClientInterceptor,
             return self._trace_result(guarded_span, rpc_info, result)
 
     # For RPCs that stream responses, the result can be a generator. To record
-    # the span across the generated responses and detect any errors, we wrap the
-    # result in a new generator that yields the response values.
+    # the span across the generated responses and detect any errors, we wrap
+    # the result in a new generator that yields the response values.
     def _intercept_server_stream(self, request_or_iterator, metadata,
                                  client_info, invoker):
         with self._start_span(client_info.full_method) as span:
@@ -168,7 +169,7 @@ class OpenTracingClientInterceptor(grpcext.UnaryClientInterceptor,
                     if self._log_payloads:
                         span.log_kv({'response': response})
                     yield response
-            except:
+            except Exception:
                 e = sys.exc_info()[0]
                 span.set_tag('error', True)
                 span.log_kv({'event': 'error', 'error.object': e})
@@ -198,7 +199,7 @@ class OpenTracingClientInterceptor(grpcext.UnaryClientInterceptor,
                     request_or_iterator)
             try:
                 result = invoker(request_or_iterator, metadata)
-            except:
+            except Exception:
                 e = sys.exc_info()[0]
                 guarded_span.span.set_tag('error', True)
                 guarded_span.span.log_kv({'event': 'error', 'error.object': e})
@@ -207,4 +208,3 @@ class OpenTracingClientInterceptor(grpcext.UnaryClientInterceptor,
                     self._span_decorator(guarded_span.span, rpc_info)
                 raise
             return self._trace_result(guarded_span, rpc_info, result)
-        

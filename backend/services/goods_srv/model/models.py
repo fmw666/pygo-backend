@@ -1,10 +1,10 @@
 import os
-import sys
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from datetime import datetime
 
-from peewee import *
+from peewee import (Model, DateTimeField, BooleanField, CharField,
+                    ForeignKeyField, IntegerField, FloatField,
+                    TextField, AutoField)
 from playhouse.mysql_ext import JSONField
 
 from goods_srv.settings import settings
@@ -19,7 +19,7 @@ class BaseModel(Model):
         if self._pk is not None:
             self.update_time = datetime.now()
         return super().save(*args, **kwargs)
-    
+
     @classmethod
     def delete(cls, permanently: bool = False):
         """
@@ -30,7 +30,8 @@ class BaseModel(Model):
         else:
             return super().update(is_deleted=True)
 
-    def delete_instance(self, permanently: bool = False, recursive: bool = ..., delete_nullable: bool = ...):
+    def delete_instance(self, permanently: bool = False, recursive: bool = ...,
+                        delete_nullable: bool = ...):
         """
         permanently: True: 真实删除; False: 逻辑删除
         """
@@ -39,10 +40,10 @@ class BaseModel(Model):
         else:
             self.is_deleted = True
             return self.save()
-    
+
     @classmethod
     def select(cls, *fields):
-        return super().select(*fields).where(cls.is_deleted == False)
+        return super().select(*fields).where(is_deleted=False)
 
     class Meta:
         database = settings.DB
@@ -67,18 +68,22 @@ class Brands(BaseModel):
     """
     品牌表
     """
-    name = CharField(max_length=30, index=True, unique=True, verbose_name="品牌名称")
-    logo = CharField(max_length=200, null=True, default="", verbose_name="品牌logo")
+    name = CharField(max_length=30, index=True, unique=True,
+                     verbose_name="品牌名称")
+    logo = CharField(max_length=200, null=True, default="",
+                     verbose_name="品牌logo")
 
 
 class Goods(BaseModel):
     """
     商品表
     """
-    category = ForeignKeyField(Category, on_delete="CASCADE", verbose_name="类别")
+    category = ForeignKeyField(Category, on_delete="CASCADE",
+                               verbose_name="类别")
     brand = ForeignKeyField(Brands, on_delete="CASCADE", verbose_name="品牌")
     on_sale = BooleanField(default=True, verbose_name="是否上架")
-    goods_sn = CharField(max_length=50, index=True, unique=True, verbose_name="商品唯一货号")
+    goods_sn = CharField(max_length=50, index=True, unique=True,
+                         verbose_name="商品唯一货号")
     name = CharField(max_length=100, verbose_name="商品名称")
     click_num = IntegerField(default=0, verbose_name="点击数")
     sold_num = IntegerField(default=0, verbose_name="商品销售量")
@@ -88,7 +93,8 @@ class Goods(BaseModel):
     goods_brief = TextField(verbose_name="商品简短描述")
     ship_free = BooleanField(default=True, verbose_name="是否承担运费")
     desc_images = JSONField(verbose_name="商品描述图片")
-    goods_front_image = CharField(max_length=200, null=True, default="", verbose_name="封面图")
+    goods_front_image = CharField(max_length=200, null=True, default="",
+                                  verbose_name="封面图")
     is_new = BooleanField(default=False, verbose_name="是否新品")
     is_hot = BooleanField(default=False, verbose_name="是否热销")
 
@@ -117,16 +123,19 @@ class Banner(BaseModel):
 
 
 if __name__ == "__main__":
-    settings.DB.create_tables([Category, Brands, Goods, GoodsCategoryBrand, Banner])
-    
+    settings.DB.create_tables(
+        [Category, Brands, Goods, GoodsCategoryBrand, Banner]
+    )
+
     # list all sql files and execute
-    sql_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "sql")
+    sql_path = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "sql")
     for filename in os.listdir(sql_path):
         if not filename.endswith(".sql"):
             continue
-        with open(os.path.join(sql_path, filename), "r", encoding="utf-8") as f:
-            sql_statements = f.read().split(";")    
+        with open(os.path.join(sql_path, filename), "r",
+                  encoding="utf-8") as f:
+            sql_statements = f.read().split(";")
             for sql in sql_statements:
                 if sql.strip():
                     settings.DB.execute_sql(sql)
-        

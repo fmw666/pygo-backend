@@ -1,12 +1,14 @@
-import os
-import sys
-# append ../ to sys.path
-sys.path.append(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "../"))
 
-from scripts.utils.common import get_nacos_client, get_jenkins_client, get_mysql_cursor
+from utils.common import (get_nacos_client, get_jenkins_client,
+                          get_mysql_cursor)
 
 
 def test_connect() -> bool:
+    """
+    测试连接.
+    :param: None
+    :return: bool
+    """
     get_nacos_client()
     get_jenkins_client()
     get_mysql_cursor()
@@ -14,6 +16,11 @@ def test_connect() -> bool:
 
 
 def execute() -> None:
+    """
+    执行测试连接.
+    :param: None
+    :return: None
+    """
     print(test_connect())
 
 

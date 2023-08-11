@@ -6,10 +6,6 @@
 3. 将配置信息写入到 backend 目录下的 apis/ config.yaml
 """
 import os
-import sys
-# append ../ to sys.path
-sys.path.append(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "../"))
-
 import re
 import json
 import shutil
@@ -17,14 +13,20 @@ import yaml
 import zipfile
 import xml.etree.ElementTree as ET
 
-from scripts.utils.common import config
+from utils.common import config
 
 
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 root_dir = os.path.dirname(parent_dir)
 
 
-def rewrite_json_file(json_file_path, srv_name) -> None:
+def rewrite_json_file(json_file_path: str, srv_name: str) -> None:
+    """
+    重写 json 文件.
+    :param json_file_path: 传入的 json 文件路径
+    :param srv_name: 要修改的服务名
+    :return: None
+    """
     json_data = {}
     with open(json_file_path, "r", encoding="utf-8") as f:
         json_data = json.load(f)
@@ -39,7 +41,9 @@ def rewrite_json_file(json_file_path, srv_name) -> None:
     for tag in ["redis", "consul", "jaeger", "rocketmq"]:
         if tag in json_data:
             json_data[tag]["host"] = config.DockerServer.host
-            json_data[tag]["port"] = int(getattr(config.DockerServer, f"{tag}_port"))
+            json_data[tag]["port"] = int(
+                getattr(config.DockerServer, f"{tag}_port")
+            )
     if "oss" in json_data:
         json_data["oss"]["key"] = config.AliOss.key
         json_data["oss"]["secrect"] = config.AliOss.secrect
@@ -61,6 +65,10 @@ def rewrite_json_file(json_file_path, srv_name) -> None:
 
 
 def set_nacosfiles_config() -> None:
+    """
+    修改 nacosfiles 目录下的 zip 文件中的配置信息.
+    :return: None
+    """
     # xx/xx/nacosfiles/
     nacosfiles_path = os.path.join(parent_dir, "nacosfiles")
     for zip_file in os.listdir(nacosfiles_path):
@@ -95,39 +103,56 @@ def set_nacosfiles_config() -> None:
 
 
 def set_nacos_config() -> None:
+    """
+    修改 backend 中 nacos 配置信息.
+    :return: None
+    """
     # 修改 services/**/settings.py 中的 nacos 配置信息.
-    srvs_list = ["goods_srv", "inventory_srv", "order_srv", "user_srv", "userop_srv"]
+    srvs_list = ["goods_srv", "inventory_srv", "order_srv", "user_srv",
+                 "userop_srv"]
     for srv in srvs_list:
-        json_file_path = os.path.join(root_dir, "backend", "services", srv, "config.json")
+        json_file_path = os.path.join(root_dir, "backend", "services", srv,
+                                      "config.json")
         json_data = {}
         with open(json_file_path, "r", encoding="utf-8") as f:
             json_data = json.load(f)
         json_data["host"] = config.RemoteServer.host
         json_data["nacos"]["host"] = config.DockerServer.host
         json_data["nacos"]["port"] = int(config.Nacos.port)
-        json_data["nacos"]["namespace"] = getattr(config.Nacos, f"{srv[:-4]}_namespace_id")
+        json_data["nacos"]["namespace"] = getattr(config.Nacos,
+                                                  f"{srv[:-4]}_namespace_id")
         json_data["nacos"]["user"] = config.Nacos.user
         json_data["nacos"]["password"] = config.Nacos.password
         with open(json_file_path, "w", encoding="utf-8") as f:
             json.dump(json_data, f, ensure_ascii=False, indent=4)
-    
+
     # 修改 apis/**/config.yaml 中的 nacos 配置信息.
-    apis_srv_dict = {"goods_web": "goods", "order_web": "order", "oss_web": "goods", "user_web": "user", "userop_web": "userop"}
+    apis_srv_dict = {"goods_web": "goods", "order_web": "order",
+                     "oss_web": "goods", "user_web": "user",
+                     "userop_web": "userop"}
     for api in apis_srv_dict.keys():
         yaml_files = ["config-pro.yaml", "config-debug.yaml"]
         api_srv = apis_srv_dict[api]
         for yaml_file in yaml_files:
-            yaml_file_path = os.path.join(root_dir, "backend", "apis", api, yaml_file)
-            yaml_data = yaml.load(open(yaml_file_path, "r", encoding="utf-8"), Loader=yaml.FullLoader)
+            yaml_file_path = os.path.join(root_dir, "backend", "apis", api,
+                                          yaml_file)
+            yaml_data = yaml.load(open(yaml_file_path, "r", encoding="utf-8"),
+                                  Loader=yaml.FullLoader)
             yaml_data["host"] = config.DockerServer.host
             yaml_data["port"] = int(config.Nacos.port)
-            yaml_data["namespace"] = getattr(config.Nacos, f"{api_srv}_namespace_id")
+            yaml_data["namespace"] = getattr(config.Nacos,
+                                             f"{api_srv}_namespace_id")
             yaml_data["user"] = config.Nacos.user
             yaml_data["password"] = config.Nacos.password
-            yaml.dump(yaml_data, open(yaml_file_path, "w", encoding="utf-8"), allow_unicode=True)
+            yaml.dump(yaml_data, open(yaml_file_path, "w", encoding="utf-8"),
+                      allow_unicode=True)
 
 
 def set_jenkins_config() -> None:
+    """
+    修改 jenkinscfg 目录下的配置文件.
+    :return: None
+    """
     # 修改 ../jenkinscfg/*.xml 配置文件
     credential_names = ["credential_git", "credential_ssh"]
     for c_name in credential_names:
@@ -147,17 +172,29 @@ def set_jenkins_config() -> None:
         tree = ET.parse(xml_path)
         root = tree.getroot()
         try:
-            sub = root.find("definition").find("scm").find("userRemoteConfigs").find("hudson.plugins.git.UserRemoteConfig")
+            sub = root.find("definition") \
+                .find("scm") \
+                .find("userRemoteConfigs") \
+                .find("hudson.plugins.git.UserRemoteConfig")
             sub_url = sub.find("url")
             sub_url.text = getattr(config.Jenkins, f"git_{j_type}_repo")
             sub_credentialsId = sub.find("credentialsId")
             sub_credentialsId.text = config.Jenkins.credential_git_id
-        except:
+        except Exception:
             raise Exception("修改 job_pipeline.xml 文件失败. 请检查配置文件是否正确.")
         tree.write(xml_path, encoding="utf-8", xml_declaration=False)
 
 
-def modify_jenkinsfile(jenkinsfile_path: str, field_name: str, new_value: str) -> None:
+def modify_jenkinsfile(jenkinsfile_path: str,
+                       field_name: str,
+                       new_value: str) -> None:
+    """
+    修改 Jenkinsfile 文件中的字段值.
+    :param jenkinsfile_path: Jenkinsfile 文件路径
+    :param field_name: 字段名
+    :param new_value: 新的字段值
+    :return: None
+    """
     try:
         # 读取 Jenkinsfile 文件内容
         with open(jenkinsfile_path, "r", encoding="utf-8") as file:
@@ -165,7 +202,8 @@ def modify_jenkinsfile(jenkinsfile_path: str, field_name: str, new_value: str) -
 
         # 使用正则表达式找到并替换字段的值
         pattern = r'\b{}\s*:\s*["\'](.+?)["\']'.format(field_name)
-        modified_content = re.sub(pattern, '{}: "{}"'.format(field_name, new_value), jenkinsfile_content)
+        modified_content = re.sub(pattern, '{}: "{}"'.format(
+            field_name, new_value), jenkinsfile_content)
 
         # 将修改后的内容写回到 Jenkinsfile 文件中
         with open(jenkinsfile_path, "w", encoding="utf-8") as file:
@@ -177,26 +215,40 @@ def modify_jenkinsfile(jenkinsfile_path: str, field_name: str, new_value: str) -
 
 
 def set_jenkinsfile_config() -> None:
-    # 将 credentialsId、url、configName 替换为配置文件中的值
-    
+    """
+    修改 Jenkinsfile 文件中的配置信息.
+    将 credentialsId、url、configName 替换为配置文件中的值.
+    :return: None
+    """
     # 修改 services/**/xx_srv/Jenkinsfile 中的配置信息.
-    srvs_list = ["goods_srv", "inventory_srv", "order_srv", "user_srv", "userop_srv"]
+    srvs_list = ["goods_srv", "inventory_srv", "order_srv", "user_srv",
+                 "userop_srv"]
     for srv in srvs_list:
-        file_path = os.path.join(root_dir, "backend", "services", srv, "Jenkinsfile")
-        modify_jenkinsfile(file_path, "credentialsId", config.Jenkins.credential_git_id)
-        modify_jenkinsfile(file_path, "url", config.Jenkins.git_srv_repo)
-        modify_jenkinsfile(file_path, "configName", config.RemoteServer.host)
-    
+        file_path = os.path.join(root_dir, "backend", "services", srv,
+                                 "Jenkinsfile")
+        modify_jenkinsfile(file_path, "credentialsId",
+                           config.Jenkins.credential_git_id)
+        modify_jenkinsfile(file_path, "url",
+                           config.Jenkins.git_srv_repo)
+        modify_jenkinsfile(file_path, "configName",
+                           config.RemoteServer.host)
+
     # 修改 apis/**/xx_web/Jenkinsfile 中的配置信息.
     apis_list = ["goods_web", "order_web", "oss_web", "user_web", "userop_web"]
     for api in apis_list:
-        file_path = os.path.join(root_dir, "backend", "apis", api, "Jenkinsfile")
-        modify_jenkinsfile(file_path, "credentialsId", config.Jenkins.credential_git_id)
+        file_path = os.path.join(root_dir, "backend", "apis", api,
+                                 "Jenkinsfile")
+        modify_jenkinsfile(file_path, "credentialsId",
+                           config.Jenkins.credential_git_id)
         modify_jenkinsfile(file_path, "url", config.Jenkins.git_api_repo)
         modify_jenkinsfile(file_path, "configName", config.RemoteServer.host)
 
 
 def execute() -> None:
+    """
+    执行函数.
+    :return: None
+    """
     set_nacosfiles_config()
     set_nacos_config()
     set_jenkins_config()

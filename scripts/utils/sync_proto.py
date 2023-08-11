@@ -11,6 +11,7 @@ import shutil
         3. 生成go的源码
 """
 
+
 class cd:
     def __init__(self, newPath):
         self.newPath = os.path.expanduser(newPath)
@@ -63,7 +64,7 @@ def copy_from_py_to_go(src_dir, dst_dir):
             shutil.copy(f"{src_dir}/{proto_file}", dst_dir)
         except IOError as e:
             print("Unable to copy file. %s" % e)
-        except:
+        except Exception:
             print("Unexpected error:", sys.exc_info())
 
 
@@ -91,7 +92,8 @@ class ProtoGenerator:
             files = proto_file_list(self.python_dir)
             subprocess.call("workon mxshop_srv", shell=True)
             for file in files:
-                command = f"python -m grpc_tools.protoc --python_out=. --grpc_python_out=. -I. {file}"
+                command = (f"python -m grpc_tools.protoc "
+                           f"--python_out=. --grpc_python_out=. -I. {file}")
                 subprocess.call(command)
 
             # 查询生成的py文件并添加上 from .
@@ -116,10 +118,11 @@ class PyProtoGenerator:
             files = proto_file_list(self.python_dir)
             subprocess.call("workon mxshop_srv", shell=True)
             for file in files:
-                command = f"python -m grpc_tools.protoc --python_out=. --grpc_python_out=. -I. {file}"
+                command = (f"python -m grpc_tools.protoc "
+                           f"--python_out=. --grpc_python_out=. -I. {file}")
                 subprocess.call(command)
 
-            #查询生成的py文件并添加上 from .
+            # 查询生成的py文件并添加上 from .
             py_files = generated_pyfile_list(self.python_dir)
             for file_name in py_files:
                 replace_file(file_name)
@@ -130,10 +133,10 @@ if __name__ == "__main__":
     # goods的proto生成
     python_dir = "Python项目下proto的文件路径"
     go_dir = "Golang项目下的proto的文件路径"
-   
+
     # 将py目录下的文件夹拷贝到go目录下
     copy_from_py_to_go(python_dir, go_dir)
-   
+
     # 生成对应的py源码和go源码
     gen = ProtoGenerator(python_dir, go_dir)
     gen.generate()

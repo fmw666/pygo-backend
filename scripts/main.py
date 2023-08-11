@@ -11,23 +11,24 @@ python main.py --help
 
 import argparse
 
-from utils import (
-    init_config,
-    init_nacos,
-    init_mysql,
-    init_jenkins,
-    test_connect,
-)
+from utils import (init_config, init_nacos, init_mysql, init_jenkins,
+                   test_connect)
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--init_config", action="store_true", help="init config")
-    parser.add_argument("--init_nacos", action="store_true", help="init nacos")
-    parser.add_argument("--init_mysql", action="store_true", help="init mysql")
-    parser.add_argument("--init_jenkins", action="store_true", help="init jenkins")
-    parser.add_argument("--test_connect", action="store_true", help="test connect")
-    parser.add_argument("--init", action="store_true", help="init all")
+    parser.add_argument("--init_config",
+                        action="store_true", help="init config")
+    parser.add_argument("--init_nacos",
+                        action="store_true", help="init nacos")
+    parser.add_argument("--init_mysql",
+                        action="store_true", help="init mysql")
+    parser.add_argument("--init_jenkins",
+                        action="store_true", help="init jenkins")
+    parser.add_argument("--test_connect",
+                        action="store_true", help="test connect")
+    parser.add_argument("--init",
+                        action="store_true", help="init all")
     args = parser.parse_args()
 
     if args.init_config:

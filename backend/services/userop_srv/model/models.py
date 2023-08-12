@@ -7,6 +7,8 @@ from peewee import (Model, DateTimeField, BooleanField, IntegerField,
 
 
 class BaseModel(Model):
+    """基础模型"""
+
     add_time = DateTimeField(default=datetime.now, verbose_name="添加时间")
     update_time = DateTimeField(default=datetime.now, verbose_name="更新时间")
     is_deleted = BooleanField(default=False, verbose_name="是否删除")
@@ -17,9 +19,10 @@ class BaseModel(Model):
         return super().save(*args, **kwargs)
 
     @classmethod
-    def delete(cls, permanently: bool = False):
+    def delete(cls, permanently: bool = False) -> int:
         """
-        permanently: True: 真实删除; False: 逻辑删除
+        :param permanently: True: 真实删除; False: 逻辑删除
+        :return: 执行操作的行数
         """
         if permanently:
             return super().delete()
@@ -29,7 +32,10 @@ class BaseModel(Model):
     def delete_instance(self, permanently: bool = False,
                         recursive: bool = ..., delete_nullable: bool = ...):
         """
-        permanently: True: 真实删除; False: 逻辑删除
+        :param permanently: True: 真实删除; False: 逻辑删除
+        :param recursive:
+        :param delete_nullable:
+        :return: 执行操作的行数
         """
         if permanently:
             return self.delete(permanently).where(self._pk_expr()).execute()
@@ -92,5 +98,9 @@ class UserFavorite(BaseModel):
         primary_key = CompositeKey("user", "goods")
 
 
-if __name__ == "__main__":
+def init() -> None:
     settings.DB.create_tables([LeaveMessage, Address, UserFavorite])
+
+
+if __name__ == "__main__":
+    init()

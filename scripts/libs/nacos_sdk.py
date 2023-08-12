@@ -1,5 +1,4 @@
 import json
-from typing import Optional
 
 import requests
 
@@ -30,7 +29,7 @@ class NacosClient:
         self.user = user
         self.password = password
 
-    def get_version(self) -> Optional[str]:
+    def get_version(self) -> None | str:
         """
         http://127.0.0.1:8848/nacos/v1/console/server/state
         {..., "version":"2.2.3"}
@@ -43,7 +42,7 @@ class NacosClient:
         json_data = rsp.json()
         return json_data.get("version")
 
-    def get_all_namespaces(self) -> Optional[list[dict]]:
+    def get_all_namespaces(self) -> None | list[dict]:
         """
         :returns: [
             {
@@ -112,7 +111,7 @@ class NacosClient:
                                                 f"{rsp.status_code}")
         return rsp.json()
 
-    def get_namespace_by_id(self, namespace_id: str) -> Optional[dict]:
+    def get_namespace_by_id(self, namespace_id: str) -> None | dict:
         """
         通过 namespace id 获取 namespace 信息
         :param namespace_id: namespace id
@@ -132,7 +131,7 @@ class NacosClient:
         return None
 
     def get_namespaces_by_name(self,
-                               namespace_name: str) -> Optional[list[dict]]:
+                               namespace_name: str) -> None | list[dict]:
         """
         通过 namespace name 获取 namespace 信息
         :param namespace_name: namespace name
@@ -204,7 +203,7 @@ class NacosClient:
                                  dataId: str = "",
                                  group: str = "",
                                  pageNo: int = 1,
-                                 pageSize: int = 999) -> Optional[list[dict]]:
+                                 pageSize: int = 999) -> None | list[dict]:
         """
         http://127.0.0.1:8848/nacos/v1/cs/configs?\
             dataId=&group=&appName=&config_tags=&pageNo=1&pageSize=999&\

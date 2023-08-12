@@ -1,4 +1,10 @@
+import os
 import sys
+try:
+    parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    sys.path.append(parent_dir)
+except IndexError:
+    pass
 
 import argparse
 import signal
@@ -6,6 +12,7 @@ import socket
 import uuid
 from concurrent import futures
 from functools import partial
+from types import FrameType
 
 import grpc
 from loguru import logger
@@ -17,7 +24,17 @@ from user_srv.proto import user_pb2_grpc
 from user_srv.settings import settings
 
 
-def signal_on_exit(signo, frame, service_id=None):
+def signal_on_exit(
+    signo: int, frame: FrameType, service_id: None | str = None
+) -> None:
+    """
+    signal handler, when receive SIGINT or SIGTERM,
+    deregister service from consul and exit
+    :param signo: signal number
+    :param frame: current stack frame
+    :param service_id: service id
+    :return: None
+    """
     logger.info(f"deregister service {service_id} from consul...")
     register = consul.ConsulRegister(settings.CONSUL_HOST,
                                      settings.CONSUL_PORT)
@@ -26,7 +43,11 @@ def signal_on_exit(signo, frame, service_id=None):
     sys.exit(0)
 
 
-def get_free_tcp_port():
+def get_free_tcp_port() -> int:
+    """
+    get free tcp port
+    :return: free tcp port
+    """
     tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     tcp.bind(("", 0))
     _, port = tcp.getsockname()
@@ -34,7 +55,11 @@ def get_free_tcp_port():
     return port
 
 
-def serve():
+def serve() -> None:
+    """
+    start grpc server and register service to consul
+    :return: None
+    """
     # python server.py --ip=127.0.0.1 --port=50051
     parser = argparse.ArgumentParser()
     parser.add_argument("--ip",

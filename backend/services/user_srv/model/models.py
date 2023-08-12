@@ -35,7 +35,7 @@ class User(BaseModel):
     role = IntegerField(default=1, choices=ROLE_CHOICES, verbose_name="角色")
 
 
-if __name__ == "__main__":
+def init() -> None:
     settings.DB.create_tables([User])
 
     from passlib.hash import pbkdf2_sha256
@@ -46,3 +46,7 @@ if __name__ == "__main__":
             user.nick_name = f"bob{i}"
             user.password = pbkdf2_sha256.hash("123456")
             user.save()
+
+
+if __name__ == "__main__":
+    init()

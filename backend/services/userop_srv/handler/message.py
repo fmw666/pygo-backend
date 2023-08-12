@@ -1,4 +1,4 @@
-
+import grpc
 from loguru import logger
 
 from userop_srv.model.models import LeaveMessage
@@ -6,8 +6,19 @@ from userop_srv.proto import message_pb2, message_pb2_grpc
 
 
 class MessageServicer(message_pb2_grpc.MessageServicer):
+
     @logger.catch
-    def MessageList(self, request: message_pb2.MessageRequest, context):
+    def MessageList(
+        self,
+        request: message_pb2.MessageRequest,
+        context: grpc.ServicerContext
+    ) -> message_pb2.MessageListResponse:
+        """
+        获取留言列表
+        :param request: MessageRequest
+        :param context: grpc.ServicerContext
+        :return: MessageListResponse
+        """
         rsp = message_pb2.MessageListResponse()
         messages = LeaveMessage.select()
         if request.userId:
@@ -29,7 +40,17 @@ class MessageServicer(message_pb2_grpc.MessageServicer):
         return rsp
 
     @logger.catch
-    def CreateMessage(self, request: message_pb2.MessageRequest, context):
+    def CreateMessage(
+        self,
+        request: message_pb2.MessageRequest,
+        context: grpc.ServicerContext
+    ) -> message_pb2.MessageResponse:
+        """
+        创建留言
+        :param request: MessageRequest
+        :param context: grpc.ServicerContext
+        :return: MessageResponse
+        """
         message = LeaveMessage(
             user=request.userId,
             message_type=request.messageType,

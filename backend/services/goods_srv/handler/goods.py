@@ -9,7 +9,13 @@ from peewee import DoesNotExist
 
 class GoodsServicer(goods_pb2_grpc.GoodsServicer):
 
-    def convert_model_to_message(self, goods):
+    def convert_model_to_message(self,
+                                 goods: Goods) -> goods_pb2.GoodsInfoResponse:
+        """
+        将 Goods 模型转换为 message
+        :param goods: Goods
+        :return: goods_pb2.GoodsInfoResponse
+        """
         info_rsp = goods_pb2.GoodsInfoResponse()
 
         info_rsp.id = goods.id
@@ -39,9 +45,16 @@ class GoodsServicer(goods_pb2_grpc.GoodsServicer):
         return info_rsp
 
     @logger.catch
-    def GoodsList(self, request: goods_pb2.GoodsFilterRequest, context):
+    def GoodsList(
+        self,
+        request: goods_pb2.GoodsFilterRequest,
+        context: grpc.ServicerContext
+    ) -> goods_pb2.GoodsListResponse:
         """
         商品列表
+        :param request: goods_pb2.GoodsFilterRequest
+        :param context: grpc.ServicerContext
+        :return: goods_pb2.GoodsListResponse
         """
         rsp = goods_pb2.GoodsListResponse()
 
@@ -101,9 +114,16 @@ class GoodsServicer(goods_pb2_grpc.GoodsServicer):
         return rsp
 
     @logger.catch
-    def BatchGetGoods(self, request: goods_pb2.GoodsFilterRequest, context):
+    def BatchGetGoods(
+        self,
+        request: goods_pb2.GoodsFilterRequest,
+        context: grpc.ServicerContext
+    ) -> goods_pb2.GoodsListResponse:
         """
         批量获取商品
+        :param request: goods_pb2.GoodsFilterRequest
+        :param context: grpc.ServicerContext
+        :return: goods_pb2.GoodsListResponse
         """
         rsp = goods_pb2.GoodsListResponse()
         goods = Goods.select().where(Goods.id.in_(list(request.id)))
@@ -115,9 +135,14 @@ class GoodsServicer(goods_pb2_grpc.GoodsServicer):
         return rsp
 
     @logger.catch
-    def DeleteGoods(self, request: goods_pb2.DeleteGoodsInfo, context):
+    def DeleteGoods(
+        self, request: goods_pb2.DeleteGoodsInfo, context: grpc.ServicerContext
+    ) -> empty_pb2.Empty:
         """
         删除商品
+        :param request: goods_pb2.DeleteGoodsInfo
+        :param context: grpc.ServicerContext
+        :return: empty_pb2.Empty
         """
         try:
             good = Goods.get(Goods.id == request.id)
@@ -132,9 +157,14 @@ class GoodsServicer(goods_pb2_grpc.GoodsServicer):
             return empty_pb2.Empty()
 
     @logger.catch
-    def GetGoodsDetail(self, request: goods_pb2.GoodInfoRequest, context):
+    def GetGoodsDetail(
+        self, request: goods_pb2.GoodInfoRequest, context: grpc.ServicerContext
+    ) -> goods_pb2.GoodsInfoResponse:
         """
         获取商品详情
+        :param request: goods_pb2.GoodInfoRequest
+        :param context: grpc.ServicerContext
+        :return: goods_pb2.GoodsInfoResponse
         """
         try:
             good = Goods.get(Goods.id == request.id)
@@ -147,9 +177,14 @@ class GoodsServicer(goods_pb2_grpc.GoodsServicer):
             return goods_pb2.GoodsInfoResponse()
 
     @logger.catch
-    def CreateGoods(self, request: goods_pb2.GoodInfoRequest, context):
+    def CreateGoods(
+        self, request: goods_pb2.GoodInfoRequest, context: grpc.ServicerContext
+    ) -> goods_pb2.GoodsInfoResponse:
         """
         创建商品
+        :param request: goods_pb2.GoodInfoRequest
+        :param context: grpc.ServicerContext
+        :return: goods_pb2.GoodsInfoResponse
         """
         try:
             category = Category.get(Category.id == request.categoryId)
@@ -187,9 +222,14 @@ class GoodsServicer(goods_pb2_grpc.GoodsServicer):
         return self.convert_model_to_message(goods)
 
     @logger.catch
-    def UpdateGoods(self, request: goods_pb2.GoodInfoRequest, context):
+    def UpdateGoods(
+        self, request: goods_pb2.GoodInfoRequest, context: grpc.ServicerContext
+    ) -> goods_pb2.GoodsInfoResponse:
         """
         更新商品
+        :param request: goods_pb2.GoodInfoRequest
+        :param context: grpc.ServicerContext
+        :return: goods_pb2.GoodsInfoResponse
         """
         try:
             category = Category.get(Category.id == request.categoryId)

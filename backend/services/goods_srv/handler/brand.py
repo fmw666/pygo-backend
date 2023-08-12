@@ -10,9 +10,14 @@ from peewee import DoesNotExist
 class BrandServicer(brand_pb2_grpc.BrandServicer):
 
     @logger.catch
-    def BrandList(self, request: empty_pb2.Empty, context):
+    def BrandList(
+        self, request: empty_pb2.Empty, context: grpc.ServicerContext
+    ) -> brand_pb2.BrandListResponse:
         """
         获取所有 brand
+        :param request: empty_pb2.Empty
+        :param context: grpc.ServicerContext
+        :return: brand_pb2.BrandListResponse
         """
         rsp = brand_pb2.BrandListResponse()
         brands = Brands.select()
@@ -29,9 +34,14 @@ class BrandServicer(brand_pb2_grpc.BrandServicer):
         return rsp
 
     # @logger.catch
-    def CreateBrand(self, request: brand_pb2.BrandRequest, context):
+    def CreateBrand(
+        self, request: brand_pb2.BrandRequest, context: grpc.ServicerContext
+    ) -> brand_pb2.BrandInfoResponse:
         """
         创建 brand
+        :param request: brand_pb2.BrandRequest
+        :param context: grpc.ServicerContext
+        :return: brand_pb2.BrandInfoResponse
         """
         brands = Brands.select().where(Brands.name == request.name)
         if brands.count() > 0:
@@ -53,9 +63,14 @@ class BrandServicer(brand_pb2_grpc.BrandServicer):
         )
 
     @logger.catch
-    def DeleteBrand(self, request: brand_pb2.BrandRequest, context):
+    def DeleteBrand(
+        self, request: brand_pb2.BrandRequest, context: grpc.ServicerContext
+    ) -> empty_pb2.Empty:
         """
         删除 brand
+        :param request: brand_pb2.BrandRequest
+        :param context: grpc.ServicerContext
+        :return: empty_pb2.Empty
         """
         try:
             brand = Brands.get(Brands.id == request.id)
@@ -67,9 +82,14 @@ class BrandServicer(brand_pb2_grpc.BrandServicer):
         return empty_pb2.Empty()
 
     @logger.catch
-    def UpdateBrand(self, request: brand_pb2.BrandRequest, context):
+    def UpdateBrand(
+        self, request: brand_pb2.BrandRequest, context: grpc.ServicerContext
+    ) -> empty_pb2.Empty:
         """
         更新 brand
+        :param request: brand_pb2.BrandRequest
+        :param context: grpc.ServicerContext
+        :return: empty_pb2.Empty
         """
         try:
             brand = Brands.get(Brands.id == request.id)
@@ -85,9 +105,14 @@ class BrandServicer(brand_pb2_grpc.BrandServicer):
         return empty_pb2.Empty()
 
     @logger.catch
-    def CategoryBrandList(self, request: empty_pb2.Empty(), context):
+    def CategoryBrandList(
+        self, request: empty_pb2.Empty(), context: grpc.ServicerContext
+    ) -> brand_pb2.CategoryBrandListResponse:
         """
         获取所有 category_brand
+        :param request: empty_pb2.Empty
+        :param context: grpc.ServicerContext
+        :return: brand_pb2.CategoryBrandListResponse
         """
         rsp = brand_pb2.CategoryBrandListResponse()
         category_brands = GoodsCategoryBrand.select()
@@ -125,10 +150,16 @@ class BrandServicer(brand_pb2_grpc.BrandServicer):
         return rsp
 
     @logger.catch
-    def GetCategoryBrandList(self, request: category_pb2.CategoryInfoRequest,
-                             context):
+    def GetCategoryBrandList(
+        self,
+        request: category_pb2.CategoryInfoRequest,
+        context: grpc.ServicerContext
+    ) -> brand_pb2.BrandListResponse:
         """
         获取分类下的所有品牌
+        :param request: category_pb2.CategoryInfoRequest
+        :param context: grpc.ServicerContext
+        :return: brand_pb2.BrandListResponse
         """
         rsp = brand_pb2.BrandListResponse()
 
@@ -153,8 +184,17 @@ class BrandServicer(brand_pb2_grpc.BrandServicer):
         return rsp
 
     @logger.catch
-    def CreateCategoryBrand(self, request: brand_pb2.CategoryBrandRequest,
-                            context):
+    def CreateCategoryBrand(
+        self,
+        request: brand_pb2.CategoryBrandRequest,
+        context: grpc.ServicerContext
+    ) -> brand_pb2.CategoryBrandResponse:
+        """
+        创建 category_brand
+        :param request: brand_pb2.CategoryBrandRequest
+        :param context: grpc.ServicerContext
+        :return: brand_pb2.CategoryBrandResponse
+        """
         category_brand = GoodsCategoryBrand()
 
         try:
@@ -184,8 +224,17 @@ class BrandServicer(brand_pb2_grpc.BrandServicer):
             return brand_pb2.CategoryBrandResponse()
 
     @logger.catch
-    def DeleteCategoryBrand(self, request: brand_pb2.CategoryBrandRequest,
-                            context):
+    def DeleteCategoryBrand(
+        self,
+        request: brand_pb2.CategoryBrandRequest,
+        context: grpc.ServicerContext
+    ) -> empty_pb2.Empty:
+        """
+        删除 category_brand
+        :param request: brand_pb2.CategoryBrandRequest
+        :param context: grpc.ServicerContext
+        :return: empty_pb2.Empty
+        """
         try:
             category_brand = GoodsCategoryBrand.get(
                 GoodsCategoryBrand.id == request.id)
@@ -197,8 +246,17 @@ class BrandServicer(brand_pb2_grpc.BrandServicer):
         return empty_pb2.Empty()
 
     @logger.catch
-    def UpdateCategoryBrand(self, request: brand_pb2.CategoryBrandRequest,
-                            context):
+    def UpdateCategoryBrand(
+        self,
+        request: brand_pb2.CategoryBrandRequest,
+        context: grpc.ServicerContext
+    ) -> empty_pb2.Empty:
+        """
+        更新 category_brand
+        :param request: brand_pb2.CategoryBrandRequest
+        :param context: grpc.ServicerContext
+        :return: empty_pb2.Empty
+        """
         try:
             category_brand = GoodsCategoryBrand.get(
                 GoodsCategoryBrand.id == request.id)

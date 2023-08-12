@@ -9,12 +9,14 @@ import grpc
 from google.protobuf import empty_pb2
 from loguru import logger
 from peewee import DoesNotExist
-from rocketmq.client import ConsumeStatus
+from rocketmq.client import ConsumeStatus, ReceivedMessage
 
 
-def reback_inventory(msg):
+def reback_inventory(msg: ReceivedMessage) -> ConsumeStatus:
     """
     通过 msg body 中的 order_sn 确认归还库存
+    :param msg: ReceivedMessage
+    :return: ConsumeStatus
     """
     msg_body = json.loads(msg.body.decode("utf-8"))
     order_sn = msg_body["orderSn"]
@@ -44,9 +46,16 @@ def reback_inventory(msg):
 class InventoryServicer(inventory_pb2_grpc.InventoryServicer):
 
     @logger.catch
-    def SetInv(self, request: inventory_pb2.GoodsInvInfo, context):
+    def SetInv(
+        self,
+        request: inventory_pb2.GoodsInvInfo,
+        context: grpc.ServicerContext
+    ) -> empty_pb2.Empty:
         """
         设置商品库存
+        :param request: inventory_pb2.GoodsInvInfo
+        :param context: grpc.ServicerContext
+        :return: empty_pb2.Empty
         """
         force_insert = False
         inv = Inventory.select().where(
@@ -61,9 +70,16 @@ class InventoryServicer(inventory_pb2_grpc.InventoryServicer):
         return empty_pb2.Empty()
 
     @logger.catch
-    def InvDetail(self, request: inventory_pb2.GoodsInvInfo, context):
+    def InvDetail(
+        self,
+        request: inventory_pb2.GoodsInvInfo,
+        context: grpc.ServicerContext
+    ) -> inventory_pb2.GoodsInvInfo:
         """
         获取某个商品库存详情
+        :param request: inventory_pb2.GoodsInvInfo
+        :param context: grpc.ServicerContext
+        :return: inventory_pb2.GoodsInvInfo
         """
         inv = Inventory.select().where(
             Inventory.goods == request.goodsId).first()
@@ -74,11 +90,15 @@ class InventoryServicer(inventory_pb2_grpc.InventoryServicer):
         return inventory_pb2.GoodsInvInfo(goodsId=inv.goods, num=inv.stocks)
 
     @logger.catch
-    def Sell(self, request: inventory_pb2.SellInfo, context):
+    def Sell(
+        self, request: inventory_pb2.SellInfo, context: grpc.ServicerContext
+    ) -> empty_pb2.Empty:
         """
         扣减库存
-
         解决超卖问题，使用 peewee 事务
+        :param request: inventory_pb2.SellInfo
+        :param context: grpc.ServicerContext
+        :return: empty_pb2.Empty
         """
         inv_history = InventoryHistory(order_sn=request.orderSn)
         inv_details = []
@@ -112,12 +132,19 @@ class InventoryServicer(inventory_pb2_grpc.InventoryServicer):
             return empty_pb2.Empty()
 
     @logger.catch
-    def Reback(self, request: inventory_pb2.GoodsInvInfo, context):
+    def Reback(
+        self,
+        request: inventory_pb2.GoodsInvInfo,
+        context: grpc.ServicerContext
+    ) -> empty_pb2.Empty:
         """
         归还库存
         1. 订单超时
         2. 订单创建失败
         3. 订单取消
+        :param request: inventory_pb2.GoodsInvInfo
+        :param context: grpc.ServicerContext
+        :return: empty_pb2.Empty
         """
         with settings.DB.atomic() as txn:
             for item in request.goodsInfo:

@@ -11,6 +11,8 @@ from goods_srv.settings import settings
 
 
 class BaseModel(Model):
+    """基础模型"""
+
     add_time = DateTimeField(default=datetime.now, verbose_name="添加时间")
     update_time = DateTimeField(default=datetime.now, verbose_name="更新时间")
     is_deleted = BooleanField(default=False, verbose_name="是否删除")
@@ -21,9 +23,10 @@ class BaseModel(Model):
         return super().save(*args, **kwargs)
 
     @classmethod
-    def delete(cls, permanently: bool = False):
+    def delete(cls, permanently: bool = False) -> int:
         """
-        permanently: True: 真实删除; False: 逻辑删除
+        :param permanently: True: 真实删除; False: 逻辑删除
+        :return: 执行受影响的行数
         """
         if permanently:
             return super().delete()
@@ -33,7 +36,10 @@ class BaseModel(Model):
     def delete_instance(self, permanently: bool = False, recursive: bool = ...,
                         delete_nullable: bool = ...):
         """
-        permanently: True: 真实删除; False: 逻辑删除
+        :param permanently: True: 真实删除; False: 逻辑删除
+        :param recursive: 是否递归删除
+        :param delete_nullable: 是否删除可空字段
+        :return: 执行受影响的行数
         """
         if permanently:
             return self.delete(permanently).where(self._pk_expr()).execute()
@@ -122,7 +128,7 @@ class Banner(BaseModel):
     index = IntegerField(default=0, verbose_name="轮播图顺序")
 
 
-if __name__ == "__main__":
+def init():
     settings.DB.create_tables(
         [Category, Brands, Goods, GoodsCategoryBrand, Banner]
     )
@@ -139,3 +145,7 @@ if __name__ == "__main__":
             for sql in sql_statements:
                 if sql.strip():
                     settings.DB.execute_sql(sql)
+
+
+if __name__ == "__main__":
+    init()

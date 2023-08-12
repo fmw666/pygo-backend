@@ -10,9 +10,14 @@ from peewee import DoesNotExist
 class BannerServicer(banner_pb2_grpc.BannerServicer):
 
     @logger.catch
-    def BannerList(self, request: empty_pb2.Empty, context):
+    def BannerList(
+        self, request: empty_pb2.Empty, context: grpc.ServicerContext
+    ) -> banner_pb2.BannerListResponse:
         """
         获取所有 banner
+        :param request: empty_pb2.Empty
+        :param context: grpc.ServicerContext
+        :return: banner_pb2.BannerListResponse
         """
         rsp = banner_pb2.BannerListResponse()
         banners = Banner.select()
@@ -31,9 +36,14 @@ class BannerServicer(banner_pb2_grpc.BannerServicer):
         return rsp
 
     @logger.catch
-    def CreateBanner(self, request: banner_pb2.BannerRequest, context):
+    def CreateBanner(
+        self, request: banner_pb2.BannerRequest, context: grpc.ServicerContext
+    ) -> banner_pb2.BannerResponse:
         """
         创建 banner
+        :param request: banner_pb2.BannerRequest
+        :param context: grpc.ServicerContext
+        :return: banner_pb2.BannerResponse
         """
         banner = Banner()
 
@@ -51,9 +61,14 @@ class BannerServicer(banner_pb2_grpc.BannerServicer):
         )
 
     @logger.catch
-    def DeleteBanner(self, request: banner_pb2.BannerRequest, context):
+    def DeleteBanner(
+        self, request: banner_pb2.BannerRequest, context: grpc.ServicerContext
+    ) -> empty_pb2.Empty:
         """
         删除 banner
+        :param request: banner_pb2.BannerRequest
+        :param context: grpc.ServicerContext
+        :return: empty_pb2.Empty
         """
         try:
             banner = Banner.get(Banner.id == request.id)
@@ -65,9 +80,14 @@ class BannerServicer(banner_pb2_grpc.BannerServicer):
         return empty_pb2.Empty()
 
     @logger.catch
-    def UpdateBanner(self, request: banner_pb2.BannerRequest, context):
+    def UpdateBanner(
+        self, request: banner_pb2.BannerRequest, context: grpc.ServicerContext
+    ) -> empty_pb2.Empty:
         """
         更新 banner
+        :param request: banner_pb2.BannerRequest
+        :param context: grpc.ServicerContext
+        :return: empty_pb2.Empty
         """
         try:
             banner = Banner.get(Banner.id == request.id)

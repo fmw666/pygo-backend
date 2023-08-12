@@ -2,6 +2,8 @@ import json
 import time
 import random
 
+from typing import Any
+
 from common.register import consul
 from common.grpc_interceptor.retry import RetryInterceptor
 from order_srv.model.models import OrderGoods, OrderInfo, ShoppingCart
@@ -14,23 +16,28 @@ from google.protobuf import empty_pb2
 from loguru import logger
 from peewee import DoesNotExist
 from rocketmq.client import (TransactionMQProducer, TransactionStatus, Message,
-                             SendStatus, Producer, ConsumeStatus)
+                             SendStatus, Producer, ConsumeStatus,
+                             ReceivedMessage)
 
 
 local_execute_dict = {}
 
 
-def generate_order_sn(user_id):
+def generate_order_sn(user_id: int) -> str:
     """
     生成订单号
+    :param user_id: 用户 ID
+    :return: 订单号
     """
     random_num = random.Random().randint(10, 99)
     return f"{time.strftime('%Y%m%d%H%M%S')}{user_id}{random_num}"
 
 
-def order_timeout(msg):
+def order_timeout(msg: ReceivedMessage) -> ConsumeStatus:
     """
     订单超时回调函数
+    :param msg: ReceivedMessage
+    :return: ConsumeStatus
     """
     msg_body = json.loads(msg.body.decode("utf-8"))
     order_sn = msg_body["orderSn"]
@@ -66,9 +73,14 @@ def order_timeout(msg):
 class OrderServicer(order_pb2_grpc.OrderServicer):
 
     @logger.catch
-    def CartItemList(self, request: order_pb2.UserInfoRequest, context):
+    def CartItemList(
+        self, request: order_pb2.UserInfoRequest, context: grpc.ServicerContext
+    ) -> order_pb2.CartItemListResponse:
         """
         获取用户购物车列表
+        :param request: UserInfoRequest
+        :param context: grpc.ServicerContext
+        :return: CartItemListResponse
         """
         items = ShoppingCart.select().where(ShoppingCart.user == request.id)
         rsp = order_pb2.CartItemListResponse(total=items.count())
@@ -83,9 +95,14 @@ class OrderServicer(order_pb2_grpc.OrderServicer):
         return rsp
 
     @logger.catch
-    def CreateCartItem(self, request: order_pb2.CartItemRequest, context):
+    def CreateCartItem(
+        self, request: order_pb2.CartItemRequest, context: grpc.ServicerContext
+    ) -> order_pb2.ShopCartInfoResponse:
         """
         添加商品到购物车
+        :param request: CartItemRequest
+        :param context: grpc.ServicerContext
+        :return: ShopCartInfoResponse
         """
         existed = ShoppingCart.select().where(
             ShoppingCart.goods == request.goodsId,
@@ -106,9 +123,14 @@ class OrderServicer(order_pb2_grpc.OrderServicer):
         return order_pb2.ShopCartInfoResponse(id=item.id)
 
     @logger.catch
-    def UpdateCartItem(self, request: order_pb2.CartItemRequest, context):
+    def UpdateCartItem(
+        self, request: order_pb2.CartItemRequest, context: grpc.ServicerContext
+    ) -> empty_pb2.Empty:
         """
         更新购物车商品: 修改数量，选中状态
+        :param request: CartItemRequest
+        :param context: grpc.ServicerContext
+        :return: empty_pb2.Empty
         """
         try:
             item = ShoppingCart.get(
@@ -126,9 +148,14 @@ class OrderServicer(order_pb2_grpc.OrderServicer):
         return empty_pb2.Empty()
 
     @logger.catch
-    def DeleteCartItem(self, request: order_pb2.CartItemRequest, context):
+    def DeleteCartItem(
+        self, request: order_pb2.CartItemRequest, context: grpc.ServicerContext
+    ) -> empty_pb2.Empty:
         """
         删除购物车商品
+        :param request: CartItemRequest
+        :param context: grpc.ServicerContext
+        :return: empty_pb2.Empty
         """
         try:
             item = ShoppingCart.get(
@@ -142,7 +169,11 @@ class OrderServicer(order_pb2_grpc.OrderServicer):
         return empty_pb2.Empty()
 
     @logger.catch
-    def OrderList(self, request: order_pb2.OrderFilterRequest, context):
+    def OrderList(
+        self,
+        request: order_pb2.OrderFilterRequest,
+        context: grpc.ServicerContext
+    ) -> order_pb2.OrderListResponse:
         """
         获取订单列表
         """
@@ -176,9 +207,14 @@ class OrderServicer(order_pb2_grpc.OrderServicer):
         return rsp
 
     @logger.catch
-    def OrderDetail(self, request: order_pb2.OrderRequest, context):
+    def OrderDetail(
+        self, request: order_pb2.OrderRequest, context: grpc.ServicerContext
+    ) -> order_pb2.OrderInfoDetailResponse:
         """
         获取订单详情
+        :param request: OrderRequest
+        :param context: grpc.ServicerContext
+        :return: OrderInfoDetailResponse
         """
         rsp = order_pb2.OrderInfoDetailResponse()
 
@@ -218,18 +254,23 @@ class OrderServicer(order_pb2_grpc.OrderServicer):
 
     @logger.catch
     def UpdateOrderStatus(self, request: order_pb2.OrderStatusRequest,
-                          context):
+                          context: grpc.ServicerContext) -> empty_pb2.Empty:
         """
         更新订单支付状态
+        :param request: OrderStatusRequest
+        :param context: grpc.ServicerContext
+        :return: empty_pb2.Empty
         """
         OrderInfo.update(status=request.status).where(
             OrderInfo.order_sn == request.orderSn).execute()
         return empty_pb2.Empty()
 
     @logger.catch
-    def check_callback(self, msg):
+    def check_callback(self, msg: ReceivedMessage) -> TransactionStatus:
         """
         RocketMQ 消费回调函数
+        :param msg: ReceivedMessage
+        :return: TransactionStatus
         """
         msg_body = json.loads(msg.body.decode("utf-8"))
         order_sn = msg_body["orderSn"]
@@ -242,9 +283,14 @@ class OrderServicer(order_pb2_grpc.OrderServicer):
             return TransactionStatus.COMMIT
 
     @logger.catch
-    def local_execute(self, msg, user_args):
+    def local_execute(
+        self, msg: ReceivedMessage, user_args: Any
+    ) -> TransactionStatus:
         """
         RocketMQ 本地事务执行函数
+        :param msg: ReceivedMessage
+        :param user_args: Any
+        :return: TransactionStatus
         """
         msg_body = json.loads(msg.body.decode("utf-8"))
         order_sn = msg_body["orderSn"]
@@ -413,13 +459,19 @@ class OrderServicer(order_pb2_grpc.OrderServicer):
         return TransactionStatus.ROLLBACK
 
     @logger.catch
-    def CreateOrder(self, request: order_pb2.OrderRequest, context):
+    def CreateOrder(
+        self, request: order_pb2.OrderRequest, context: grpc.ServicerContext
+    ) -> order_pb2.OrderInfoResponse:
         """
         创建订单
         1. 获取价格 -- 商品服务
         2. 库存扣减 -- 库存服务
         3. 生成订单 -- 订单服务
         4. 从购物车获取并删除商品 -- 订单服务
+
+        :param request: order_pb2.OrderRequest
+        :param context: grpc.ServicerContext
+        :return: order_pb2.OrderInfoResponse
         """
         producer = TransactionMQProducer("pygo", self.check_callback)
         producer.set_name_server_address(

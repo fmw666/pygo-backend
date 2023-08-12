@@ -11,7 +11,12 @@ from peewee import DoesNotExist
 
 class CategoryServicer(category_pb2_grpc.CategoryServicer):
 
-    def category_model_to_dict(self, category):
+    def category_model_to_dict(self, category: Category) -> dict:
+        """
+        将 Category 模型转换为 dict
+        :param category: Category
+        :return: dict
+        """
         category_dict = {
             "name": category.name,
             "id": category.id,
@@ -22,10 +27,14 @@ class CategoryServicer(category_pb2_grpc.CategoryServicer):
         return category_dict
 
     @logger.catch
-    def GetAllCategorysList(self, request: empty_pb2.Empty, context):
+    def GetAllCategorysList(
+        self, request: empty_pb2.Empty, context: grpc.ServicerContext
+    ) -> category_pb2.CategoryListResponse:
         """
         获取所有商品分类
-
+        :param request: empty_pb2.Empty
+        :param context: grpc.ServicerContext
+        :return: CategoryListResponse
         [{
             "name": "string",
             "id": 0,
@@ -76,8 +85,17 @@ class CategoryServicer(category_pb2_grpc.CategoryServicer):
         return category_list_rsp
 
     @logger.catch
-    def GetSubCategory(self, request: category_pb2.CategoryListRequest,
-                       context):
+    def GetSubCategory(
+        self,
+        request: category_pb2.CategoryListRequest,
+        context: grpc.ServicerContext
+    ) -> category_pb2.SubCategoryListResponse:
+        """
+        获取子分类
+        :param request: category_pb2.CategoryListRequest
+        :param context: grpc.ServicerContext
+        :return: category_pb2.SubCategoryListResponse
+        """
         category_list_rsp = category_pb2.SubCategoryListResponse()
 
         try:
@@ -114,8 +132,17 @@ class CategoryServicer(category_pb2_grpc.CategoryServicer):
         return category_list_rsp
 
     @logger.catch
-    def CreateCategory(self, request: category_pb2.CategoryInfoRequest,
-                       context):
+    def CreateCategory(
+        self,
+        request: category_pb2.CategoryInfoRequest,
+        context: grpc.ServicerContext
+    ) -> category_pb2.CategoryInfoResponse:
+        """
+        创建分类
+        :param request: category_pb2.CategoryInfoRequest
+        :param context: grpc.ServicerContext
+        :return: category_pb2.CategoryInfoResponse
+        """
         try:
             category = Category()
             category.name = request.name
@@ -140,8 +167,17 @@ class CategoryServicer(category_pb2_grpc.CategoryServicer):
         return category_rsp
 
     @logger.catch
-    def DeleteCategory(self, request: category_pb2.DeleteCategoryRequest,
-                       context):
+    def DeleteCategory(
+        self,
+        request: category_pb2.DeleteCategoryRequest,
+        context: grpc.ServicerContext
+    ) -> empty_pb2.Empty:
+        """
+        删除分类
+        :param request: category_pb2.DeleteCategoryRequest
+        :param context: grpc.ServicerContext
+        :return: empty_pb2.Empty
+        """
         try:
             category = Category.get(Category.id == request.id)
             category.delete_instance()
@@ -155,8 +191,17 @@ class CategoryServicer(category_pb2_grpc.CategoryServicer):
             return empty_pb2.Empty()
 
     @logger.catch
-    def UpdateCategory(self, request: category_pb2.CategoryInfoRequest,
-                       context):
+    def UpdateCategory(
+        self,
+        request: category_pb2.CategoryInfoRequest,
+        context: grpc.ServicerContext
+    ) -> empty_pb2.Empty:
+        """
+        更新分类
+        :param request: category_pb2.CategoryInfoRequest
+        :param context: grpc.ServicerContext
+        :return: empty_pb2.Empty
+        """
         try:
             category = Category.get(Category.id == request.id)
             if request.name:

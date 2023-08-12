@@ -8,8 +8,19 @@ from userop_srv.proto import address_pb2, address_pb2_grpc
 
 
 class AddressServicer(address_pb2_grpc.AddressServicer):
+
     @logger.catch
-    def GetAddressList(self, request: address_pb2.AddressRequest, context):
+    def GetAddressList(
+        self,
+        request: address_pb2.AddressRequest,
+        context: grpc.ServicerContext
+    ) -> address_pb2.AddressListResponse:
+        """
+        获取收货地址列表
+        :param request: AddressRequest
+        :param context: grpc.ServicerContext
+        :return: AddressListResponse
+        """
         rsp = address_pb2.AddressListResponse()
         addresses = Address.select()
 
@@ -32,7 +43,17 @@ class AddressServicer(address_pb2_grpc.AddressServicer):
         return rsp
 
     @logger.catch
-    def CreateAddress(self, request: address_pb2.AddressRequest, context):
+    def CreateAddress(
+        self,
+        request: address_pb2.AddressRequest,
+        context: grpc.ServicerContext
+    ) -> address_pb2.AddressResponse:
+        """
+        创建收货地址
+        :param request: AddressRequest
+        :param context: grpc.ServicerContext
+        :return: AddressResponse
+        """
         address = Address(
             user=request.userId,
             province=request.province,
@@ -56,7 +77,17 @@ class AddressServicer(address_pb2_grpc.AddressServicer):
         )
 
     @logger.catch
-    def UpdateAddress(self, request: address_pb2.AddressRequest, context):
+    def UpdateAddress(
+        self,
+        request: address_pb2.AddressRequest,
+        context: grpc.ServicerContext
+    ) -> empty_pb2.Empty:
+        """
+        更新收货地址
+        :param request: AddressRequest
+        :param context: grpc.ServicerContext
+        :return: Empty
+        """
         try:
             address = Address.get(Address.id == request.id)
             if request.province:
@@ -79,7 +110,17 @@ class AddressServicer(address_pb2_grpc.AddressServicer):
             return empty_pb2.Empty()
 
     @logger.catch
-    def DeleteAddress(self, request: address_pb2.AddressRequest, context):
+    def DeleteAddress(
+        self,
+        request: address_pb2.AddressRequest,
+        context: grpc.ServicerContext
+    ) -> empty_pb2.Empty:
+        """
+        删除收货地址
+        :param request: AddressRequest
+        :param context: grpc.ServicerContext
+        :return: Empty
+        """
         try:
             address = Address.get(Address.id == request.id)
             address.delete_instance()
